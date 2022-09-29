@@ -42,9 +42,9 @@ def fit(E0s, B, atoms_list, solver, ncomms=32):
     solver.fit(Psi, Y)
     c = solver.coef_
     sigma = solver.sigma_
-    min_sigma_eig_val = np.min(np.isreal(np.linalg.eigvals(sigma)))
+    #min_sigma_eig_val = np.min(np.isreal(np.linalg.eigvals(sigma)))
 
-    comms = np.random.multivariate_normal(c, sigma + min_sigma_eig_val*np.eye(len(c), dtype=float), size=ncomms)
+    comms = np.random.multivariate_normal(c, sigma, size=ncomms)
     IP = ace_basis.combine(E0s, B, c, comms)
     
     return IP
