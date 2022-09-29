@@ -4,10 +4,12 @@ jl = Julia(compiled_modules=False)
 from julia import Main
 Main.eval("using ASE, JuLIP, ACE1")
 
-def ref_pot(E0s):
-    Main.E0s = E0s
-    ref_pot = Main.eval("Dict(zip(Symbol.(keys(E0s)), values(E0s)))")
-    return ref_pot
+from HAL_lib import calculator
+
+# def ref_pot(E0s):
+#     Main.E0s = E0s
+#     ref_pot = Main.eval("Dict(zip(Symbol.(keys(E0s)), values(E0s)))")
+#     return ref_pot
 
 def full_basis(basis_info):
     Main.elements = basis_info["elements"]
@@ -37,8 +39,9 @@ def full_basis(basis_info):
             """)
     return B
 
-def combine(ref_pot, ace_basis, c, comms):
-    Main.ref_pot = ref_pot
+def combine(E0s, ace_basis, c, comms):
+    Main.E0s = E0s
+    Main.ref_pot = Main.eval("refpot = OneBody(:Al => -105.8114973092, :Si => -163.2225204255)")
     Main.B = ace_basis
     Main.c = c
     Main.comms = comms
@@ -46,5 +49,5 @@ def combine(ref_pot, ace_basis, c, comms):
 
     IP = Main.eval("IP = JuLIP.MLIPs.SumIP(ref_pot, JuLIP.MLIPs.combine(B, c))")
     IPs = Main.eval("IPs = [JuLIP.MLIPs.SumIP(ref_pot, JuLIP.MLIPs.combine(B, comms[i, :])) for i in 1:ncomms]")
-    return IP, IPs
+    return calculator.JulipCalculator("IP"), [calculator.JulipCalculator("IPs[{}]".format(i+1)) for i in range(len(comms)) ]
     
