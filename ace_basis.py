@@ -43,10 +43,6 @@ def combine(ref_pot, ace_basis, c, comms):
     Main.c = c
     Main.comms = comms
     Main.ncomms = len(comms)
-    print(len(comms))
-    print(len(comms[1]))
-    print(len(c))
-    print(comms)
 
     IP = Main.eval("IP = JuLIP.MLIPs.SumIP(ref_pot, JuLIP.MLIPs.combine(B, c))")
     IPs = Main.eval("IPs = [JuLIP.MLIPs.SumIP(ref_pot, JuLIP.MLIPs.combine(B, comms[i, :])) for i in 1:ncomms]")
