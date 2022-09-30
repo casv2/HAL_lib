@@ -20,7 +20,11 @@ def get_F_bias(IP, IPs, at):
 
     return F_bar, F_bias.T
 
-def get_fi(IP, IPs, at):
+def softmax_func(x):
+    e_x = np.exp(x - np.max(x))
+    return e_x / e_x.sum()
+
+def get_fi(IP, IPs, at, softmax=False):
     at.set_calculator(IP)
 
     F_bar = at.get_forces()
@@ -32,5 +36,8 @@ def get_fi(IP, IPs, at):
 
     fi = np.sum([np.linalg.norm(F_bar - F_comms[i], axis=1) for i in range(len(IPs))], axis=0)/len(IPs) / (np.linalg.norm(F_bar, axis=1) + np.mean(np.linalg.norm(F_bar, axis=1)))
 
-    return np.max(fi)
+    if softmax:
+        return np.max(softmax_func(fi))
+    else:
+        return np.max(fi)
 

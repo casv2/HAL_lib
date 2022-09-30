@@ -18,13 +18,15 @@ def Velocity_Verlet(IP, IPs, at, dt, tau, baro_settings, thermo_settings):
 
     p = at.get_momenta()
     p += 0.5 * dt * forces
+    
     masses = at.get_masses()[:, np.newaxis]
+
     if thermo_settings["thermo"] == True: 
         p = random_p_update(p, masses, thermo_settings["gamma"], thermo_settings["T"] * kB, dt)
-
+    at.set_momenta(p, apply_constraint=False)
+    
     r = at.get_positions()
     at.set_positions(r + dt * p / masses)
-    at.set_momenta(p, apply_constraint=False)
 
     F_bar, F_bias = com.get_F_bias(IP, IPs, at)
     forces = F_bar - tau * F_bias
@@ -33,7 +35,6 @@ def Velocity_Verlet(IP, IPs, at, dt, tau, baro_settings, thermo_settings):
 
     if thermo_settings["thermo"] == True: 
         p = random_p_update(p, masses, thermo_settings["gamma"], thermo_settings["T"] * kB, dt)
-
     at.set_momenta(p)
 
     return at, np.mean(np.linalg.norm(F_bar, axis=1)), np.mean(np.linalg.norm(F_bias, axis=1))
