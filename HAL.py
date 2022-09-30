@@ -12,7 +12,7 @@ from ase.units import fs
 from ase.units import kB
 from ase.units import GPa
 
-from ase.io import read, write
+from ase.io import write
 
 import matplotlib.pyplot as plt
 
