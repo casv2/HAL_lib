@@ -67,7 +67,7 @@ def HAL(E0s, basis_info, weights, run_info, atoms_list, start_configs, solver, c
                 at.set_calculator(calculator)
                 at.info["energy"] = at.get_potential_energy()
                 at.arrays["forces"] = at.get_forces()
-                at.info["virial"] = at
+                at.info["virial"] = -1.0 * at.get_volume() * at.get_stress(voigt=False)
 
             write("HAL_it{}.extxyz".format(m), at)
 
