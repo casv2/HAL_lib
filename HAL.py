@@ -22,6 +22,7 @@ def HAL(E0s, basis_info, weights, run_info, atoms_list, start_configs, solver, c
     ncomms = run_info["ncomms"]
     nsteps = run_info["nsteps"]
     tau_rel = run_info["tau_rel"]
+    tau_hist = run_info["tau_hist"]
     dt = run_info["dt"]
     f_tol = run_info["f_tol"]
     softmax = run_info["softmax"]
@@ -57,7 +58,7 @@ def HAL(E0s, basis_info, weights, run_info, atoms_list, start_configs, solver, c
             IP, IPs = lsq.fit(B, E0s, atoms_list, weights, solver, ncomms=ncomms)
             
             #here we fill in the keywords for run
-            E_tot, E_kin, E_pot, T_s, P_s, f_s, at =  run(IP, IPs, init_config, nsteps, dt, tau_rel, f_tol, baro_settings, thermo_settings, swap_settings, vol_settings, softmax=softmax)
+            E_tot, E_kin, E_pot, T_s, P_s, f_s, at =  run(IP, IPs, init_config, nsteps, dt, tau_rel, f_tol, baro_settings, thermo_settings, swap_settings, vol_settings, tau_hist=tau_hist, softmax=softmax)
 
             plot(E_tot, E_kin, E_pot, T_s, P_s, f_s, m)
 
@@ -71,7 +72,7 @@ def HAL(E0s, basis_info, weights, run_info, atoms_list, start_configs, solver, c
 
             utils.save_pot("HAL_it{}.json".format(m))
 
-def run(IP, IPs, at, nsteps, dt, tau_rel, f_tol, baro_settings, thermo_settings, swap_settings, vol_settings, softmax):
+def run(IP, IPs, at, nsteps, dt, tau_rel, f_tol, baro_settings, thermo_settings, swap_settings, vol_settings, tau_hist=100, softmax=True):
     E_tot = np.zeros(nsteps)
     E_pot = np.zeros(nsteps)
     E_kin = np.zeros(nsteps)
@@ -96,7 +97,7 @@ def run(IP, IPs, at, nsteps, dt, tau_rel, f_tol, baro_settings, thermo_settings,
         m_F_bias[i] = F_bias_mean
 
         if i > 100:
-            tau = (tau_rel * np.mean(m_F_bar[i-99:i])) / np.mean(m_F_bias[i-99:i])
+            tau = (tau_rel * np.mean(m_F_bar[i-tau_hist:i])) / np.mean(m_F_bias[i-tau_hist:i])
         else:
             tau = 0.0
 
