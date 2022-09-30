@@ -61,6 +61,7 @@ def HAL(E0s, basis_info, weights, run_info, atoms_list, start_configs, solver, c
             E_tot, E_kin, E_pot, T_s, P_s, f_s, at =  run(IP, IPs, init_config, nsteps, dt, tau_rel, f_tol, baro_settings, thermo_settings, swap_settings, vol_settings, tau_hist=tau_hist, softmax=softmax)
 
             plot(E_tot, E_kin, E_pot, T_s, P_s, f_s, m)
+            utils.save_pot("HAL_it{}.json".format(m))
 
             if calculator != None:
                 at.set_calculator(calculator)
@@ -70,7 +71,9 @@ def HAL(E0s, basis_info, weights, run_info, atoms_list, start_configs, solver, c
 
             write("HAL_it{}.extxyz".format(m), at)
 
-            utils.save_pot("HAL_it{}.json".format(m))
+            atoms_list += at
+    
+    return atoms_list
 
 def run(IP, IPs, at, nsteps, dt, tau_rel, f_tol, baro_settings, thermo_settings, swap_settings, vol_settings, tau_hist=100, softmax=True):
     E_tot = np.zeros(nsteps)
