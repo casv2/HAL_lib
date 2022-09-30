@@ -16,7 +16,7 @@ from ase.io import write
 
 import matplotlib.pyplot as plt
 
-def HAL(E0s, basis_info, weights, run_info, atoms_list, start_configs, solver): #calculator
+def HAL(E0s, basis_info, weights, run_info, atoms_list, start_configs, solver, calculator=None): #calculator
     #general settings
     niters = run_info["niters"]
     ncomms = run_info["ncomms"]
@@ -61,10 +61,12 @@ def HAL(E0s, basis_info, weights, run_info, atoms_list, start_configs, solver): 
 
             plot(E_tot, E_kin, E_pot, T_s, P_s, f_s, m)
 
-            # at.set_calculator(calculator)
-            # at.info["energy"] = at.get_potential_energy()
-            # at.arrays["forces"] = at.get_forces()
-            # at.info["virial"] = at
+            if calculator != None:
+                at.set_calculator(calculator)
+                at.info["energy"] = at.get_potential_energy()
+                at.arrays["forces"] = at.get_forces()
+                at.info["virial"] = at
+
             write("HAL_it{}.extxyz".format(m), at)
 
             utils.save_pot("HAL_it{}.json".format(m))
