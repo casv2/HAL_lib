@@ -99,7 +99,7 @@ def run(IP, IPs, at, nsteps, dt, tau_rel, f_tol, baro_settings, thermo_settings,
         m_F_bar[i] = F_bar_mean
         m_F_bias[i] = F_bias_mean
 
-        if i > 100:
+        if i > tau_hist:
             tau = (tau_rel * np.mean(m_F_bar[i-tau_hist:i])) / np.mean(m_F_bias[i-tau_hist:i])
         else:
             tau = 0.0
