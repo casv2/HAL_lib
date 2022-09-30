@@ -71,7 +71,7 @@ def HAL(E0s, basis_info, weights, run_info, atoms_list, start_configs, solver, c
 
             write("HAL_it{}.extxyz".format(m), at)
 
-            atoms_list += at
+            atoms_list.append(at)
     
     return atoms_list
 

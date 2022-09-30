@@ -13,6 +13,8 @@ convert = Main.eval("julip_at(a) = JuLIP.Atoms(a)")
 ASEAtoms = Main.eval("ASEAtoms(a) = ASE.ASEAtoms(a)")
 
 def assemble_lsq(B, E0s, atoms_list, weights):
+    print(atoms_list[0])
+    print(atoms_list[-1])
     num_obs = np.sum([1 + len(at)*3 + 9 for at in atoms_list])
     len_B = Main.eval("length(B)")
 
