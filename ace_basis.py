@@ -6,11 +6,6 @@ Main.eval("using ASE, JuLIP, ACE1")
 
 from HAL_lib import calculator
 
-# def ref_pot(E0s):
-#     Main.E0s = E0s
-#     ref_pot = Main.eval("Dict(zip(Symbol.(keys(E0s)), values(E0s)))")
-#     return ref_pot
-
 def full_basis(basis_info):
     Main.elements = basis_info["elements"]
     Main.cor_order = basis_info["cor_order"]
@@ -39,10 +34,10 @@ def full_basis(basis_info):
             """)
     return B
 
-def combine(E0s, ace_basis, c, comms):
+def combine(B, c, E0s, comms):
     Main.E0s = E0s
-    Main.ref_pot = Main.eval("refpot = OneBody(:Al => -105.8114973092, :Si => -163.2225204255)")
-    Main.B = ace_basis
+    Main.ref_pot = Main.eval("refpot = OneBody(" + "".join([" :{} => {}, ".format(key, value) for key, value in E0s.items()]) + ")")
+    Main.B = B
     Main.c = c
     Main.comms = comms
     Main.ncomms = len(comms)

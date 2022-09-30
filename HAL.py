@@ -6,6 +6,7 @@ from HAL_lib import ace_basis
 from HAL_lib import MD
 from HAL_lib import com
 from HAL_lib import MC
+from HAL_lib import utils
 
 from ase.units import fs
 from ase.units import kB
@@ -15,7 +16,7 @@ from ase.io import read, write
 
 import matplotlib.pyplot as plt
 
-def HAL(E0s, basis_info, run_info, atoms_list, start_configs, solver): #calculator
+def HAL(E0s, basis_info, weights, run_info, atoms_list, start_configs, solver): #calculator
     #general settings
     niters = run_info["niters"]
     ncomms = run_info["ncomms"]
@@ -53,17 +54,20 @@ def HAL(E0s, basis_info, run_info, atoms_list, start_configs, solver): #calculat
             m = j*niters + i
 
             B = ace_basis.full_basis(basis_info);
-            IP, IPs = lsq.fit(E0s, B, atoms_list, solver, ncomms=ncomms)
+            IP, IPs = lsq.fit(B, E0s, atoms_list, weights, solver, ncomms=ncomms)
             
             #here we fill in the keywords for run
             E_tot, E_kin, E_pot, T_s, P_s, f_s, at =  run(IP, IPs, init_config, nsteps, dt, tau_rel, f_tol, baro_settings, thermo_settings, swap_settings, vol_settings, softmax=softmax)
 
             plot(E_tot, E_kin, E_pot, T_s, P_s, f_s, m)
 
+            # at.set_calculator(calculator)
+            # at.info["energy"] = at.get_potential_energy()
+            # at.arrays["forces"] = at.get_forces()
+            # at.info["virial"] = at
             write("HAL_it{}.extxyz".format(m), at)
 
-
-
+            utils.save_pot("HAL_it{}.json".format(m))
 
 def run(IP, IPs, at, nsteps, dt, tau_rel, f_tol, baro_settings, thermo_settings, swap_settings, vol_settings, softmax):
     E_tot = np.zeros(nsteps)
@@ -115,7 +119,6 @@ def run(IP, IPs, at, nsteps, dt, tau_rel, f_tol, baro_settings, thermo_settings,
         i += 1
     
     return E_tot[:i], E_kin[:i], E_pot[:i], T_s[:i], P_s[:i], f_s[:i], at
-    
 
 
 def plot(E_tot, E_kin, E_pot, T_s, P_s, f_s, m):
@@ -131,6 +134,8 @@ def plot(E_tot, E_kin, E_pot, T_s, P_s, f_s, m):
     axes[2].set_ylabel("P [GPa]")
     axes[3].set_ylabel("max f_i")
     axes[3].set_xlabel("HAL steps")
+    axes[0].legend(loc="upper right")
+    plt.tight_layout()
     plt.savefig("./plot_{}.pdf".format(m))
 
     
