@@ -34,7 +34,7 @@ def HAL(E0s, basis_info, run_info, atoms_list, start_configs, solver): #calculat
     #baro/thermo on or not
     if run_info["baro"] == True:
         baro_settings["baro"] = True
-        baro_settings["P"] = run_info["P"]
+        baro_settings["target_pressure"] = run_info["P"]
         baro_settings["mu"] = run_info["mu"]
     if run_info["thermo"] == True:
         thermo_settings["thermo"] = True
