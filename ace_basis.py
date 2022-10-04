@@ -9,7 +9,8 @@ from HAL_lib import calculator
 def full_basis(basis_info):
     Main.elements = basis_info["elements"]
     Main.cor_order = basis_info["cor_order"]
-    Main.poly_deg = basis_info["poly_deg"]
+    Main.poly_deg_ACE = basis_info["poly_deg_ACE"]
+    Main.poly_deg_pair = basis_info["poly_deg_pair"]
     Main.r_0 = basis_info["r0"]
     Main.r_in = basis_info["r_in"]
     Main.r_cut = basis_info["r_cut"]
@@ -17,7 +18,7 @@ def full_basis(basis_info):
     B = Main.eval("""
             Bsite = rpi_basis(species = Symbol.(elements),
                                 N = cor_order,       # correlation order = body-order - 1
-                                maxdeg = poly_deg,  # polynomial degree
+                                maxdeg = poly_deg_ACE,  # polynomial degree
                                 r0 = r_0,     # estimate for NN distance
                                 rin = r_in,
                                 rcut = r_cut,   # domain for radial basis (cf documentation)
@@ -25,7 +26,7 @@ def full_basis(basis_info):
 
             Bpair = pair_basis(species = Symbol.(elements),
                                 r0 = r_0,
-                                maxdeg = poly_deg,
+                                maxdeg = poly_deg_pair,
                                 rcut = r_cut + 1.0,
                                 rin = 0.0,
                                 pin = 0 )   # pin = 0 means no inner cutoff

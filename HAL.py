@@ -7,6 +7,7 @@ from HAL_lib import MD
 from HAL_lib import com
 from HAL_lib import MC
 from HAL_lib import utils
+from HAL_lib import errors
 
 from ase.units import fs
 from ase.units import kB
@@ -62,6 +63,8 @@ def HAL(E0s, basis_info, weights, run_info, atoms_list, start_configs, solver, c
                 Psi, Y = lsq.add_lsq(B, E0s, at, weights, Psi, Y)
 
             IP, IPs = lsq.fit(Psi, Y, B, E0s, solver, ncomms=ncomms)
+
+            errors.print_errors(IP, al)
             
             #here we fill in the keywords for run
             E_tot, E_kin, E_pot, T_s, P_s, f_s, at =  run(IP, IPs, init_config, nsteps, dt, tau_rel, f_tol, baro_settings, thermo_settings, swap_settings, vol_settings, tau_hist=tau_hist, softmax=softmax)
@@ -109,8 +112,6 @@ def run(IP, IPs, at, nsteps, dt, tau_rel, f_tol, baro_settings, thermo_settings,
             tau = (tau_rel * np.mean(m_F_bar[i-tau_hist:i])) / np.mean(m_F_bias[i-tau_hist:i])
         else:
             tau = 0.0
-
-        print(tau)
 
         if (vol_settings["vol"] == True) and (i % vol_settings["vol_step"] == 0):
             at = MC.MC_vol_step(IP, IPs, at, tau, thermo_settings["T"])
