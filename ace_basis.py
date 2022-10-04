@@ -4,7 +4,8 @@ jl = Julia(compiled_modules=False)
 from julia import Main
 Main.eval("using ASE, JuLIP, ACE1")
 
-from HAL_lib import calculator
+from HAL_lib import ACEcalculator
+from HAL_lib import HALcalculator
 
 def full_basis(basis_info):
     Main.elements = basis_info["elements"]
@@ -42,7 +43,7 @@ def combine(B, c, E0s, comms):
     Main.comms = comms
     Main.ncomms = len(comms)
 
-    IP = Main.eval("IP = JuLIP.MLIPs.SumIP(ref_pot, JuLIP.MLIPs.combine(B, c))")
-    IPs = Main.eval("IPs = [JuLIP.MLIPs.SumIP(ref_pot, JuLIP.MLIPs.combine(B, comms[i, :])) for i in 1:ncomms]")
-    return calculator.JulipCalculator("IP"), [calculator.JulipCalculator("IPs[{}]".format(i+1)) for i in range(len(comms)) ]
+    IP = Main.eval("ACE_IP = JuLIP.MLIPs.SumIP(ref_pot, JuLIP.MLIPs.combine(B, c))")
+    IPs = Main.eval("HAL_IP = vcat(IP, [JuLIP.MLIPs.SumIP(ref_pot, JuLIP.MLIPs.combine(B, comms[i, :])) for i in 1:ncomms])")
+    return ACEcalculator.ACECalculator("ACE_IP"), HALcalculator.HALCalculator("HAL_IP") 
     
