@@ -8,6 +8,8 @@ from julia import Main
 
 Main.eval(""" 
 function get_com_forces(IPs, at)
+    GC.gc()
+
     nIPs = length(IPs)
     Fs = Vector(undef, nIPs)
     Fs[1] = forces(IPs[1], at)
@@ -20,6 +22,8 @@ function get_com_forces(IPs, at)
 end
 
 function get_com_energies(IPs, at)
+    GC.gc()
+    
     nIPs = length(IPs)
     Es = Vector(undef, nIPs)
     Es[1] = energy(IPs[1], at)
