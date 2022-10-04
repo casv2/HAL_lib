@@ -64,7 +64,17 @@ def fit(Psi, Y, B, E0s, solver, ncomms=32):
     c = solver.coef_
     sigma = solver.sigma_
 
-    comms = np.random.multivariate_normal(c, sigma, size=ncomms)
+    if sigma.shape[0] != len(c):
+        sigma_large = np.zeros((len(c), len(c)))
+        non_zeros = np.nonzero(c)
+        for (i, r_ind) in enumerate(non_zeros):
+            r = np.zeros(len(c))
+            r[non_zeros] = sigma[:, i]
+            sigma_large[r_ind, :] = r
+        comms = np.random.multivariate_normal(c, sigma_large, size=ncomms)
+    else:
+        comms = np.random.multivariate_normal(c, sigma, size=ncomms)
+    
     IP, IPs = ace_basis.combine(B, c, E0s, comms)
     
     return IP, IPs
