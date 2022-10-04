@@ -102,7 +102,6 @@ def run(ACE_IP, HAL_IP, at, nsteps, dt, tau_rel, f_tol, baro_settings, thermo_se
 
     tau=0.0
     while running and i < nsteps:
-        print("MD iteration: {}".format(i))
         at, F_bar_mean, F_bias_mean = MD.Velocity_Verlet(ACE_IP, HAL_IP, at, dt * fs, tau, baro_settings=baro_settings, thermo_settings=thermo_settings)
         
         m_F_bar[i] = F_bar_mean
@@ -129,6 +128,8 @@ def run(ACE_IP, HAL_IP, at, nsteps, dt, tau_rel, f_tol, baro_settings, thermo_se
 
         if i > nsteps or f_s[i] > f_tol:
             running=False
+
+        print("MD iteration: {}, tau: {}".format(i, tau))
 
         i += 1
 
