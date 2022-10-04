@@ -52,7 +52,8 @@ def HAL(E0s, basis_info, weights, run_info, atoms_list, start_configs, solver, c
     
     for (j, start_config) in enumerate(start_configs):
         for i in range(niters):
-            init_config = deepcopy(start_config)
+            start_config.calc = None
+            current_config = deepcopy(start_config)
             m = j*niters + i
 
             B = ace_basis.full_basis(basis_info);
@@ -66,7 +67,7 @@ def HAL(E0s, basis_info, weights, run_info, atoms_list, start_configs, solver, c
 
             errors.print_errors(ACE_IP, atoms_list)
             
-            E_tot, E_kin, E_pot, T_s, P_s, f_s, at = run(ACE_IP, HAL_IP, init_config, nsteps, dt, tau_rel, f_tol, baro_settings, thermo_settings, swap_settings, vol_settings, tau_hist=tau_hist, softmax=softmax)
+            E_tot, E_kin, E_pot, T_s, P_s, f_s, at = run(ACE_IP, HAL_IP, current_config, nsteps, dt, tau_rel, f_tol, baro_settings, thermo_settings, swap_settings, vol_settings, tau_hist=tau_hist, softmax=softmax)
 
             plot(E_tot, E_kin, E_pot, T_s, P_s, f_s, m)
             utils.save_pot("HAL_it{}.json".format(m))
