@@ -62,12 +62,11 @@ def HAL(E0s, basis_info, weights, run_info, atoms_list, start_configs, solver, c
             else:
                 Psi, Y = lsq.add_lsq(B, E0s, at, weights, Psi, Y)
 
-            IP, IPs = lsq.fit(Psi, Y, B, E0s, solver, ncomms=ncomms)
+            ACE_IP, HAL_IP = lsq.fit(Psi, Y, B, E0s, solver, ncomms=ncomms)
 
-            errors.print_errors(IP, atoms_list)
+            errors.print_errors(ACE_IP, atoms_list)
             
-            #here we fill in the keywords for run
-            E_tot, E_kin, E_pot, T_s, P_s, f_s, at =  run(ACE_IP, HAL_IP, init_config, nsteps, dt, tau_rel, f_tol, baro_settings, thermo_settings, swap_settings, vol_settings, tau_hist=tau_hist, softmax=softmax)
+            E_tot, E_kin, E_pot, T_s, P_s, f_s, at = run(ACE_IP, HAL_IP, init_config, nsteps, dt, tau_rel, f_tol, baro_settings, thermo_settings, swap_settings, vol_settings, tau_hist=tau_hist, softmax=softmax)
 
             plot(E_tot, E_kin, E_pot, T_s, P_s, f_s, m)
             utils.save_pot("HAL_it{}.json".format(m))
@@ -103,6 +102,7 @@ def run(ACE_IP, HAL_IP, at, nsteps, dt, tau_rel, f_tol, baro_settings, thermo_se
 
     tau=0.0
     while running and i < nsteps:
+        print("MD iteration: {}".format(i))
         at, F_bar_mean, F_bias_mean = MD.Velocity_Verlet(ACE_IP, HAL_IP, at, dt * fs, tau, baro_settings=baro_settings, thermo_settings=thermo_settings)
         
         m_F_bar[i] = F_bar_mean
@@ -114,11 +114,12 @@ def run(ACE_IP, HAL_IP, at, nsteps, dt, tau_rel, f_tol, baro_settings, thermo_se
             tau = 0.0
 
         if (vol_settings["vol"] == True) and (i % vol_settings["vol_step"] == 0):
-            at = MC.MC_vol_step(HAL_IP, at, tau, thermo_settings["T"])
+            at = MC.MC_vol_step(HAL_IP, at, tau, thermo_settings["T"] * kB)
 
         if (swap_settings["swap"] == True) and (i % swap_settings["swap_step"] == 0):
-            at = MC.MC_swap_step(HAL_IP, at, tau, thermo_settings["T"])
+            at = MC.MC_swap_step(HAL_IP, at, tau, thermo_settings["T"] * kB)
 
+        at.set_calculator(ACE_IP)
         E_kin[i] = at.get_kinetic_energy()/len(at)
         E_pot[i] = (at.get_potential_energy() - E0)/len(at)
         E_tot[i] = E_kin[i] + E_pot[i]
@@ -130,7 +131,7 @@ def run(ACE_IP, HAL_IP, at, nsteps, dt, tau_rel, f_tol, baro_settings, thermo_se
             running=False
 
         i += 1
-    
+
     return E_tot[:i], E_kin[:i], E_pot[:i], T_s[:i], P_s[:i], f_s[:i], at
 
 

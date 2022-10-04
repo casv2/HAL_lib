@@ -22,16 +22,11 @@ def softmax_func(x):
 def get_fi(HAL_IP, at, softmax=False):
     at.set_calculator(HAL_IP)
     F_comms = at.get_forces()
-
-    ncomms = len(F_comms)
-
     F_bar = F_comms[0]
 
-    for IP_com in IPs:
-        at.set_calculator(IP_com)
-        F_comms.append(at.get_forces())
+    ncomms = len(F_comms)-1
 
-    fi = np.sum([np.linalg.norm(F_bar - F_comms[i], axis=1) for i in range(1, len(ncomms))], axis=0)/len(ncomms) / (np.linalg.norm(F_bar, axis=1) + np.mean(np.linalg.norm(F_bar, axis=1)))
+    fi = (np.sum([np.linalg.norm(F_comms[i] - F_bar, axis=1) for i in range(1, ncomms)], axis=0)/ncomms) / (np.linalg.norm(F_bar, axis=1) + np.mean(np.linalg.norm(F_bar, axis=1)))
 
     if softmax:
         return np.max(softmax_func(fi))

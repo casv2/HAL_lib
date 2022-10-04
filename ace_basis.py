@@ -45,6 +45,6 @@ def combine(B, c, E0s, comms):
     Main.ncomms = len(comms)
 
     IP = Main.eval("ACE_IP = JuLIP.MLIPs.SumIP(ref_pot, JuLIP.MLIPs.combine(B, c))")
-    IPs = Main.eval("HAL_IP = vcat(IP, [JuLIP.MLIPs.SumIP(ref_pot, JuLIP.MLIPs.combine(B, comms[i, :])) for i in 1:ncomms])")
+    IPs = Main.eval("HAL_IP = vcat(ACE_IP, [JuLIP.MLIPs.SumIP(ref_pot, JuLIP.MLIPs.combine(B, comms[i, :])) for i in 1:ncomms])")
     return ACEcalculator.ACECalculator("ACE_IP"), HALcalculator.HALCalculator("HAL_IP") 
     

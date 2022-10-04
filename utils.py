@@ -4,4 +4,4 @@ from julia import Main
 Main.eval("using ASE, JuLIP, ACE1")
 
 def save_pot(fname):
-    Main.eval("save_dict(\"./{}\", Dict(\"IP\" => write_dict(IP)))".format(fname))
+    Main.eval("save_dict(\"./{}\", Dict(\"IP\" => write_dict(ACE_IP)))".format(fname))

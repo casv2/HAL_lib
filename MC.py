@@ -1,7 +1,5 @@
 import numpy as np
 
-#from copy import deepcopy
-from ase.units import kB
 
 ## swap step
 def MC_swap_step(HAL_IPs, at, tau, temp):
@@ -31,7 +29,7 @@ def MC_swap_step(HAL_IPs, at, tau, temp):
 
     E2 = get_HAL_E(HAL_IPs, at, tau)
 
-    p = np.exp((E1 - E2) / (kB * temp))
+    p = np.exp((E1 - E2) / (temp))
 
     if np.random.rand() < p:
         at[i1].symbol = el2
@@ -62,7 +60,7 @@ def MC_vol_step(HAL_IPs, at, tau, temp):
 
     E2 = get_HAL_E(HAL_IPs, at, tau)
 
-    p = np.exp((E1 - E2) / (kB * temp))
+    p = np.exp((E1 - E2) / (temp))
 
     if np.random.rand() < p:
         print("ACCEPT_VOL")
@@ -78,6 +76,6 @@ def get_HAL_E(HAL_IPs, at, tau):
     E_bar = E_comms[0]
 
     ncomms = len(E_comms)-1
-    E_std = np.sqrt(1/ncomms) * (np.sum([ np.power((E_bar - E_comms[i]), 2) for i in range(1, ncomms)]) )
+    E_std = np.sqrt((1/ncomms) * (np.sum([ np.power((E_bar - E_comms[i]), 2) for i in range(1, ncomms)]) ))
 
     return E_bar - tau * E_std

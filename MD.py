@@ -13,8 +13,8 @@ def random_p_update(p,masses,gamma,kBT,dt):
     v_new = c1*v + (R* c2)
     return v_new * masses
 
-def barostat(IP, at, mu, target_pressure):
-    at.set_calculator(IP)
+def barostat(ACE_IP, at, mu, target_pressure):
+    at.set_calculator(ACE_IP)
     pressure = (np.trace(at.get_stress(voigt=False))/3) / GPa
     scale = (1.0 - (mu * (target_pressure - pressure)))
     at.set_cell(at.cell * scale, scale_atoms=True)
