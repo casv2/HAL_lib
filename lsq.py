@@ -45,7 +45,7 @@ def add_lsq(B, E0s, at, weights, Psi, Y):
     Y = np.append(Y, np.zeros(extra_obs))
 
     Psi[row_count, :] = weights["E"] * np.array(energy(B, convert(ASEAtoms(at)))).flatten() 
-    Y[row_count] = weights["E"] * np.array(at.info["energy"]).flatten() - np.sum([at.get_chemical_symbols().count(EL) * E0 for EL, E0 in E0s.items()])
+    Y[row_count] = weights["E"] * (np.array(at.info["energy"]).flatten() - np.sum([at.get_chemical_symbols().count(EL) * E0 for EL, E0 in E0s.items()]))
     row_count += 1
 
     Frows = len(at)*3
