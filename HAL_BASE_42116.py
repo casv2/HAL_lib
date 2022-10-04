@@ -7,7 +7,6 @@ from HAL_lib import MD
 from HAL_lib import com
 from HAL_lib import MC
 from HAL_lib import utils
-from HAL_lib import errors
 
 from ase.units import fs
 from ase.units import kB
@@ -63,11 +62,9 @@ def HAL(E0s, basis_info, weights, run_info, atoms_list, start_configs, solver, c
                 Psi, Y = lsq.add_lsq(B, E0s, at, weights, Psi, Y)
 
             IP, IPs = lsq.fit(Psi, Y, B, E0s, solver, ncomms=ncomms)
-
-            errors.print_errors(IP, atoms_list)
             
             #here we fill in the keywords for run
-            E_tot, E_kin, E_pot, T_s, P_s, f_s, at =  run(ACE_IP, HAL_IP, init_config, nsteps, dt, tau_rel, f_tol, baro_settings, thermo_settings, swap_settings, vol_settings, tau_hist=tau_hist, softmax=softmax)
+            E_tot, E_kin, E_pot, T_s, P_s, f_s, at =  run(IP, IPs, init_config, nsteps, dt, tau_rel, f_tol, baro_settings, thermo_settings, swap_settings, vol_settings, tau_hist=tau_hist, softmax=softmax)
 
             plot(E_tot, E_kin, E_pot, T_s, P_s, f_s, m)
             utils.save_pot("HAL_it{}.json".format(m))
@@ -84,7 +81,7 @@ def HAL(E0s, basis_info, weights, run_info, atoms_list, start_configs, solver, c
     
     return atoms_list
 
-def run(ACE_IP, HAL_IP, at, nsteps, dt, tau_rel, f_tol, baro_settings, thermo_settings, swap_settings, vol_settings, tau_hist=100, softmax=True):
+def run(IP, IPs, at, nsteps, dt, tau_rel, f_tol, baro_settings, thermo_settings, swap_settings, vol_settings, tau_hist=100, softmax=True):
     E_tot = np.zeros(nsteps)
     E_pot = np.zeros(nsteps)
     E_kin = np.zeros(nsteps)
@@ -95,7 +92,7 @@ def run(ACE_IP, HAL_IP, at, nsteps, dt, tau_rel, f_tol, baro_settings, thermo_se
     m_F_bar = np.zeros(nsteps)
     m_F_bias = np.zeros(nsteps)
 
-    at.set_calculator(ACE_IP)
+    at.set_calculator(IP)
     E0 = at.get_potential_energy()
 
     running=True
@@ -103,7 +100,7 @@ def run(ACE_IP, HAL_IP, at, nsteps, dt, tau_rel, f_tol, baro_settings, thermo_se
 
     tau=0.0
     while running and i < nsteps:
-        at, F_bar_mean, F_bias_mean = MD.Velocity_Verlet(ACE_IP, HAL_IP, at, dt * fs, tau, baro_settings=baro_settings, thermo_settings=thermo_settings)
+        at, F_bar_mean, F_bias_mean = MD.Velocity_Verlet(IP, IPs, at, dt * fs, tau, baro_settings=baro_settings, thermo_settings=thermo_settings)
         
         m_F_bar[i] = F_bar_mean
         m_F_bias[i] = F_bias_mean
@@ -113,18 +110,20 @@ def run(ACE_IP, HAL_IP, at, nsteps, dt, tau_rel, f_tol, baro_settings, thermo_se
         else:
             tau = 0.0
 
+        print(tau)
+
         if (vol_settings["vol"] == True) and (i % vol_settings["vol_step"] == 0):
-            at = MC.MC_vol_step(HAL_IP, at, tau, thermo_settings["T"])
+            at = MC.MC_vol_step(IP, IPs, at, tau, thermo_settings["T"])
 
         if (swap_settings["swap"] == True) and (i % swap_settings["swap_step"] == 0):
-            at = MC.MC_swap_step(HAL_IP, at, tau, thermo_settings["T"])
+            at = MC.MC_swap_step(IP, IPs, at, tau, thermo_settings["T"])
 
         E_kin[i] = at.get_kinetic_energy()/len(at)
         E_pot[i] = (at.get_potential_energy() - E0)/len(at)
         E_tot[i] = E_kin[i] + E_pot[i]
         T_s[i] = (at.get_kinetic_energy()/len(at)) / (1.5 * kB)
         P_s[i] = (np.trace(at.get_stress(voigt=False))/3) / GPa
-        f_s[i] = com.get_fi(HAL_IP, at, softmax=softmax)
+        f_s[i] = com.get_fi(IP, IPs, at, softmax=softmax)
 
         if i > nsteps or f_s[i] > f_tol:
             running=False

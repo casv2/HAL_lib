@@ -22,17 +22,17 @@ def assemble_lsq(B, E0s, atoms_list, weights):
     i = 0
     for at in atoms_list:
         Psi[i,:] = weights["E"] * np.array(energy(B, convert(ASEAtoms(at)))).flatten() 
-        Y[i] = np.array(at.info["energy"]).flatten() - np.sum([at.get_chemical_symbols().count(EL) * E0 for EL, E0 in E0s.items()])
+        Y[i] = weights["E"] * (np.array(at.info["energy"]).flatten() - np.sum([at.get_chemical_symbols().count(EL) * E0 for EL, E0 in E0s.items()]))
         i += 1
 
         Frows = len(at)*3
         Psi[i:i+Frows, :] = weights["F"] * np.reshape(np.array(forces(B, convert(ASEAtoms(at)))).flatten(), (len_B, Frows)).transpose()
-        Y[i:i+Frows] = np.array(at.arrays["forces"]).flatten()
+        Y[i:i+Frows] = weights["F"] * np.array(at.arrays["forces"]).flatten()
         i += Frows
 
         Vrows = 9
         Psi[i:i+Vrows, :] = weights["V"] * np.reshape(np.array(virial(B, convert(ASEAtoms(at)))).flatten(), (len_B, Vrows)).transpose()
-        Y[i:i+Vrows] = np.array(at.info["virial"]).flatten()
+        Y[i:i+Vrows] = weights["V"] * np.array(at.info["virial"]).flatten()
 
     return Psi, Y
 
@@ -45,17 +45,17 @@ def add_lsq(B, E0s, at, weights, Psi, Y):
     Y = np.append(Y, np.zeros(extra_obs))
 
     Psi[row_count, :] = weights["E"] * np.array(energy(B, convert(ASEAtoms(at)))).flatten() 
-    Y[row_count] = np.array(at.info["energy"]).flatten() - np.sum([at.get_chemical_symbols().count(EL) * E0 for EL, E0 in E0s.items()])
+    Y[row_count] = weights["E"] * np.array(at.info["energy"]).flatten() - np.sum([at.get_chemical_symbols().count(EL) * E0 for EL, E0 in E0s.items()])
     row_count += 1
 
     Frows = len(at)*3
     Psi[row_count:row_count+Frows, :] = weights["F"] * np.reshape(np.array(forces(B, convert(ASEAtoms(at)))).flatten(), (len_B, Frows)).transpose()
-    Y[row_count:row_count+Frows] = np.array(at.arrays["forces"]).flatten()
+    Y[row_count:row_count+Frows] = weights["F"] * np.array(at.arrays["forces"]).flatten()
     row_count += Frows
 
     Vrows = 9
     Psi[row_count:row_count+Vrows, :] = weights["V"] * np.reshape(np.array(virial(B, convert(ASEAtoms(at)))).flatten(), (len_B, Vrows)).transpose()
-    Y[row_count:row_count+Vrows] = np.array(at.info["virial"]).flatten()
+    Y[row_count:row_count+Vrows] = weights["V"] * np.array(at.info["virial"]).flatten()
     
     return Psi, Y
 

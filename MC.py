@@ -34,7 +34,6 @@ def MC_swap_step(HAL_IPs, at, tau, temp):
     p = np.exp((E1 - E2) / (kB * temp))
 
     if np.random.rand() < p:
-        print("ACCEPT_SWAP")
         at[i1].symbol = el2
         at[i1].mass = m2
 
