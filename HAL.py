@@ -64,7 +64,7 @@ def HAL(E0s, basis_info, weights, run_info, atoms_list, start_configs, solver, c
 
             IP, IPs = lsq.fit(Psi, Y, B, E0s, solver, ncomms=ncomms)
 
-            errors.print_errors(IP, al)
+            errors.print_errors(IP, atoms_list)
             
             #here we fill in the keywords for run
             E_tot, E_kin, E_pot, T_s, P_s, f_s, at =  run(IP, IPs, init_config, nsteps, dt, tau_rel, f_tol, baro_settings, thermo_settings, swap_settings, vol_settings, tau_hist=tau_hist, softmax=softmax)
