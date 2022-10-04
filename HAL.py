@@ -55,7 +55,13 @@ def HAL(E0s, basis_info, weights, run_info, atoms_list, start_configs, solver, c
             m = j*niters + i
 
             B = ace_basis.full_basis(basis_info);
-            IP, IPs = lsq.fit(B, E0s, atoms_list, weights, solver, ncomms=ncomms)
+
+            if m == 0:
+                Psi, Y = lsq.assemble_lsq(B, E0s, atoms_list, weights)
+            else:
+                Psi, Y = lsq.add_lsq(B, E0s, at, weights, Psi, Y)
+
+            IP, IPs = lsq.fit(Psi, Y, B, E0s, solver, ncomms=ncomms)
             
             #here we fill in the keywords for run
             E_tot, E_kin, E_pot, T_s, P_s, f_s, at =  run(IP, IPs, init_config, nsteps, dt, tau_rel, f_tol, baro_settings, thermo_settings, swap_settings, vol_settings, tau_hist=tau_hist, softmax=softmax)

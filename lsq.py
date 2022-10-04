@@ -13,8 +13,6 @@ convert = Main.eval("julip_at(a) = JuLIP.Atoms(a)")
 ASEAtoms = Main.eval("ASEAtoms(a) = ASE.ASEAtoms(a)")
 
 def assemble_lsq(B, E0s, atoms_list, weights):
-    print(atoms_list[0])
-    print(atoms_list[-1])
     num_obs = np.sum([1 + len(at)*3 + 9 for at in atoms_list])
     len_B = Main.eval("length(B)")
 
@@ -38,17 +36,39 @@ def assemble_lsq(B, E0s, atoms_list, weights):
 
     return Psi, Y
 
-def fit(B, E0s, atoms_list, weights, solver, ncomms=32):
-    Psi, Y = assemble_lsq(B, E0s, atoms_list, weights)
+def add_lsq(B, E0s, at, weights, Psi, Y):
+    extra_obs = np.sum([1 + len(at)*3 + 9])
+    len_B = Main.eval("length(B)")
 
+    row_count = np.shape(Psi)[0]
+    Psi = np.append(Psi, np.zeros((extra_obs, len_B)), axis=0)
+    Y = np.append(Y, np.zeros((extra_obs)))
+
+    Psi[row_count, :] = weights["E"] * np.array(energy(B, convert(ASEAtoms(at)))).flatten() 
+    Y[row_count] = np.array(at.info["energy"]).flatten() - np.sum([at.get_chemical_symbols().count(EL) * E0 for EL, E0 in E0s.items()])
+    print(Psi[row_count+1, :])
+    row_count += 1
+
+    Frows = len(at)*3
+    Psi[row_count:row_count+Frows, :] = weights["F"] * np.reshape(np.array(forces(B, convert(ASEAtoms(at)))).flatten(), (len_B, Frows)).transpose()
+    Y[row_count:row_count+Frows] = np.array(at.arrays["forces"]).flatten()
+    row_count += Frows
+
+    Vrows = 9
+    Psi[row_count:row_count+Vrows, :] = weights["V"] * np.reshape(np.array(virial(B, convert(ASEAtoms(at)))).flatten(), (len_B, Vrows)).transpose()
+    Y[row_count:row_count+Vrows] = np.array(at.info["virial"]).flatten()
+    
+    return Psi, Y
+
+def fit(Psi, Y, B, E0s, solver, ncomms=32):
     solver.fit(Psi, Y)
     c = solver.coef_
     sigma = solver.sigma_
 
     comms = np.random.multivariate_normal(c, sigma, size=ncomms)
-    IP = ace_basis.combine(B, c, E0s, comms)
+    IP, IPs = ace_basis.combine(B, c, E0s, comms)
     
-    return IP
+    return IP, IPs
 
 
 
