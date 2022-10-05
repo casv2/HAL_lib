@@ -26,6 +26,7 @@ def HAL(B, E0s, weights, run_info, atoms_list, data_keys, start_configs, solver,
     tau_hist = run_info["tau_hist"]
     dt = run_info["dt"]
     f_tol = run_info["f_tol"]
+    eps = run_info["eps"]
     softmax = run_info["softmax"]
 
     #
@@ -67,7 +68,7 @@ def HAL(B, E0s, weights, run_info, atoms_list, data_keys, start_configs, solver,
 
             errors.print_errors(ACE_IP, atoms_list)
             
-            E_tot, E_kin, E_pot, T_s, P_s, f_s, at = run(ACE_IP, HAL_IP, current_config, nsteps, dt, tau_rel, f_tol, baro_settings, thermo_settings, swap_settings, vol_settings, tau_hist=tau_hist, softmax=softmax)
+            E_tot, E_kin, E_pot, T_s, P_s, f_s, at = run(ACE_IP, HAL_IP, current_config, nsteps, dt, tau_rel, f_tol, eps, baro_settings, thermo_settings, swap_settings, vol_settings, tau_hist=tau_hist, softmax=softmax)
 
             plot(E_tot, E_kin, E_pot, T_s, P_s, f_s, m)
             utils.save_pot("HAL_it{}.json".format(m))
@@ -88,7 +89,7 @@ def HAL(B, E0s, weights, run_info, atoms_list, data_keys, start_configs, solver,
     
     return atoms_list
 
-def run(ACE_IP, HAL_IP, at, nsteps, dt, tau_rel, f_tol, baro_settings, thermo_settings, swap_settings, vol_settings, tau_hist=100, softmax=True):
+def run(ACE_IP, HAL_IP, at, nsteps, dt, tau_rel, f_tol, eps, baro_settings, thermo_settings, swap_settings, vol_settings, tau_hist=100, softmax=True):
     E_tot = np.zeros(nsteps)
     E_pot = np.zeros(nsteps)
     E_kin = np.zeros(nsteps)
@@ -129,7 +130,7 @@ def run(ACE_IP, HAL_IP, at, nsteps, dt, tau_rel, f_tol, baro_settings, thermo_se
         E_tot[i] = E_kin[i] + E_pot[i]
         T_s[i] = (at.get_kinetic_energy()/len(at)) / (1.5 * kB)
         P_s[i] = -1.0 * (np.trace(at.get_stress(voigt=False))/3) / GPa
-        f_s[i] = com.get_fi(HAL_IP, at, softmax=softmax)
+        f_s[i] = com.get_fi(HAL_IP, at, eps, softmax=softmax)
 
         if i > nsteps or f_s[i] > f_tol:
             running=False
