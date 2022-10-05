@@ -17,7 +17,7 @@ from ase.io import write
 
 import matplotlib.pyplot as plt
 
-def HAL(E0s, basis_info, weights, run_info, atoms_list, start_configs, solver, calculator=None): #calculator
+def HAL(B, E0s, weights, run_info, atoms_list, start_configs, solver, calculator=None): #calculator
     #general settings
     niters = run_info["niters"]
     ncomms = run_info["ncomms"]
@@ -56,7 +56,7 @@ def HAL(E0s, basis_info, weights, run_info, atoms_list, start_configs, solver, c
             current_config = deepcopy(start_config)
             m = j*niters + i
 
-            B = ace_basis.full_basis(basis_info);
+            #B = ace_basis.full_basis(basis_info);
 
             if m == 0:
                 Psi, Y = lsq.assemble_lsq(B, E0s, atoms_list, weights)
@@ -132,7 +132,8 @@ def run(ACE_IP, HAL_IP, at, nsteps, dt, tau_rel, f_tol, baro_settings, thermo_se
         if i > nsteps or f_s[i] > f_tol:
             running=False
 
-        print("MD iteration: {}, tau: {}".format(i, tau))
+        if (i % 100):
+            print("MD iteration: {}, tau: {}".format(i, tau))
 
         i += 1
 
