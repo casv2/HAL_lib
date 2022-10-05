@@ -22,21 +22,21 @@ def assemble_lsq(B, E0s, atoms_list, data_keys, weights):
     i = 0
     for at in atoms_list:
         Psi[i,:] = weights["E"] * np.array(energy(B, convert(ASEAtoms(at)))).flatten() 
-        Y[i] = weights["E"] * (np.array(at.info["energy"]).flatten() - np.sum([at.get_chemical_symbols().count(EL) * E0 for EL, E0 in E0s.items()]))
+        Y[i] = weights["E"] * (np.array(at.info[data_keys["E"]]).flatten() - np.sum([at.get_chemical_symbols().count(EL) * E0 for EL, E0 in E0s.items()]))
         i += 1
 
         Frows = len(at)*3
         Psi[i:i+Frows, :] = weights["F"] * np.reshape(np.array(forces(B, convert(ASEAtoms(at)))).flatten(), (len_B, Frows)).transpose()
-        Y[i:i+Frows] = weights["F"] * np.array(at.arrays["forces"]).flatten()
+        Y[i:i+Frows] = weights["F"] * np.array(at.arrays[data_keys["F"]]).flatten()
         i += Frows
 
         Vrows = 9
         Psi[i:i+Vrows, :] = weights["V"] * np.reshape(np.array(virial(B, convert(ASEAtoms(at)))).flatten(), (len_B, Vrows)).transpose()
-        Y[i:i+Vrows] = weights["V"] * np.array(at.info["virial"]).flatten()
+        Y[i:i+Vrows] = weights["V"] * np.array(at.info[data_keys["V"]]).flatten()
 
     return Psi, Y
 
-def add_lsq(B, E0s, at, weights, data_keys, Psi, Y):
+def add_lsq(B, E0s, at, data_keys, weights, Psi, Y):
     extra_obs = np.sum([1 + len(at)*3 + 9])
     len_B = Main.eval("length(B)")
 
