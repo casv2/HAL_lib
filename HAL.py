@@ -17,7 +17,7 @@ from ase.io import write
 
 import matplotlib.pyplot as plt
 
-def HAL(B, E0s, weights, run_info, atoms_list, start_configs, solver, calculator=None): #calculator
+def HAL(B, E0s, weights, run_info, atoms_list, data_keys, start_configs, solver, calculator=None): #calculator
     #general settings
     niters = run_info["niters"]
     ncomms = run_info["ncomms"]
@@ -59,9 +59,9 @@ def HAL(B, E0s, weights, run_info, atoms_list, start_configs, solver, calculator
             #B = ace_basis.full_basis(basis_info);
 
             if m == 0:
-                Psi, Y = lsq.assemble_lsq(B, E0s, atoms_list, weights)
+                Psi, Y = lsq.assemble_lsq(B, E0s, atoms_list, data_keys, weights)
             else:
-                Psi, Y = lsq.add_lsq(B, E0s, at, weights, Psi, Y)
+                Psi, Y = lsq.add_lsq(B, E0s, at, data_keys, weights, Psi, Y)
 
             ACE_IP, HAL_IP = lsq.fit(Psi, Y, B, E0s, solver, ncomms=ncomms)
 
@@ -74,10 +74,12 @@ def HAL(B, E0s, weights, run_info, atoms_list, start_configs, solver, calculator
 
             if calculator != None:
                 at.set_calculator(calculator)
-                at.info["energy"] = at.get_potential_energy()
-                at.arrays["forces"] = at.get_forces()
-                at.info["virial"] = -1.0 * at.get_volume() * at.get_stress(voigt=False)
-                
+                at.info[data_keys["E"]] = at.get_potential_energy()
+                at.arrays[data_keys["F"]] = at.get_forces()
+                at.info[data_keys["V"]] = -1.0 * at.get_volume() * at.get_stress(voigt=False)
+            
+            at.info["config_type"] = "HAL_" + at.info["config_type"]
+
             del at.arrays["momenta"]
 
             write("HAL_it{}.extxyz".format(m), at)
