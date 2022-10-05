@@ -126,7 +126,7 @@ def run(ACE_IP, HAL_IP, at, nsteps, dt, tau_rel, f_tol, baro_settings, thermo_se
         E_pot[i] = (at.get_potential_energy() - E0)/len(at)
         E_tot[i] = E_kin[i] + E_pot[i]
         T_s[i] = (at.get_kinetic_energy()/len(at)) / (1.5 * kB)
-        P_s[i] = (np.trace(at.get_stress(voigt=False))/3) / GPa
+        P_s[i] = -1.0 * (np.trace(at.get_stress(voigt=False))/3) / GPa
         f_s[i] = com.get_fi(HAL_IP, at, softmax=softmax)
 
         if i > nsteps or f_s[i] > f_tol:
