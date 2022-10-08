@@ -64,6 +64,11 @@ def HAL(B, E0s, weights, run_info, atoms_list, data_keys, start_configs, solver,
             else:
                 Psi, Y = lsq.add_lsq(B, E0s, at, data_keys, weights, Psi, Y)
 
+            if 'Fmax' in data_keys:
+                inds = Y[Y >= data_keys['Fmax']]
+                Y[inds] = 0.0
+                Psi[inds, : ] = np.zeros(Psi.shape[0])
+
             ACE_IP, HAL_IP = lsq.fit(Psi, Y, B, E0s, solver, ncomms=ncomms)
 
             errors.print_errors(ACE_IP, atoms_list)
