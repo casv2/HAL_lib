@@ -7,6 +7,8 @@ jl = Julia(compiled_modules=False)
 from julia import Main
 
 Main.eval(""" 
+using LinearAlgebra
+
 function get_com_forces(IPs, at)
     GC.gc()
 
@@ -34,9 +36,39 @@ function get_com_energies(IPs, at)
 
     return Es
 end
+
+function get_bias_forces(IPs, at)
+    GC.gc()
+
+    nIPs = length(IPs)
+    Es = get_com_energies(IPs, at)
+    Fs = get_com_forces(IPs, at)
+
+    varE = sum([ (Es[i] - Es[1])^2 for i in 1:nIPs])/nIPs
+
+    Fbias =  1/sqrt(varE) * sum([ 2*(Es[i] - Es[1])*(Fs[i] - Fs[1]) for i in 2:(nIPs-1)])/(nIPs-1)
+
+    return Fbias
+end
+
+softmax(x) = exp.(x) ./ sum(exp.(x))
+
+function get_uncertainty(IPs, at; Freg=0.2)
+    GC.gc()
+
+    nIPs = length(IPs)
+    Fs = get_com_forces(IPs, at)
+
+    dFn = sum(hcat([norm.(Fs[m] - Fs[1]) for m in 1:length(Fs)]...), dims=2)/(nIPs-1)
+    Fn = norm.(Fs[1])
+    
+    p = softmax(dFn ./ (Fn .+ Freg))
+
+    return maximum(p)
+end
 """);
 
-from julia.Main import get_com_forces, get_com_energies
+from julia.Main import get_uncertainty, get_bias_forces
 
 Main.eval("using ASE, JuLIP, ACE1")
 
@@ -48,7 +80,7 @@ class HALCalculator(Calculator):
     """
     ASE-compatible Calculator that calls JuLIP.jl for forces and energy
     """
-    implemented_properties = ['energy', 'forces']
+    implemented_properties = ['uncertainty', 'bias_forces']
     default_parameters = {}
     name = 'JulipCalculator'
 
@@ -61,7 +93,7 @@ class HALCalculator(Calculator):
         julia_atoms = ASEAtoms(atoms)
         julia_atoms = convert(julia_atoms)
         self.results = {}
-        if 'energy' in properties:
-            self.results['energy'] = np.array(get_com_energies(self.julip_calculator, julia_atoms))
-        if 'forces' in properties:
-            self.results['forces'] = np.array(get_com_forces(self.julip_calculator, julia_atoms))
+        if 'uncertainty' in properties:
+            self.results['uncertainty'] = np.array(get_uncertainty(self.julip_calculator, julia_atoms))
+        if 'bias_forces' in properties:
+            self.results['bias_forces'] = np.array(get_bias_forces(self.julip_calculator, julia_atoms))
