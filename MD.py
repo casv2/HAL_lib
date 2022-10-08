@@ -20,8 +20,11 @@ def barostat(ACE_IP, at, mu, target_pressure):
     at.set_cell(at.cell * scale, scale_atoms=True)
     return at
 
-def Velocity_Verlet(ACE_IP, HAL_IPs, at, dt, tau, baro_settings, thermo_settings):
-    F_bar, F_bias = com.get_F_bias(HAL_IPs, at)
+def Velocity_Verlet(ACE_IP, HAL_IP, at, dt, tau, baro_settings, thermo_settings):
+    at.set_calculator(ACE_IP)
+    F_bar = at.get_forces()
+    at.set_calculator(HAL_IP)
+    F_bias = at.get_forces()
     forces = F_bar - tau * F_bias
 
     p = at.get_momenta()
@@ -36,7 +39,10 @@ def Velocity_Verlet(ACE_IP, HAL_IPs, at, dt, tau, baro_settings, thermo_settings
     r = at.get_positions()
     at.set_positions(r + dt * p / masses)
 
-    F_bar, F_bias = com.get_F_bias(HAL_IPs, at)
+    at.set_calculator(ACE_IP)
+    F_bar = at.get_forces()
+    at.set_calculator(HAL_IP)
+    F_bias = at.get_forces()
     forces = F_bar - tau * F_bias
 
     p = at.get_momenta() + 0.5 * dt * forces

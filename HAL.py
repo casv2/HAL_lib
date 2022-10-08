@@ -138,7 +138,8 @@ def run(ACE_IP, HAL_IP, at, nsteps, dt, tau_rel, f_tol, eps, baro_settings, ther
         E_tot[i] = E_kin[i] + E_pot[i]
         T_s[i] = (at.get_kinetic_energy()/len(at)) / (1.5 * kB)
         P_s[i] = -1.0 * (np.trace(at.get_stress(voigt=False))/3) / GPa
-        f_s[i] = com.get_fi(HAL_IP, at, eps, softmax=softmax)
+        at.set_calculator(HAL_IP)
+        f_s[i] = HAL_IP.get_property('uncertainty',  at)
 
         if i > nsteps or f_s[i] > f_tol:
             running=False
