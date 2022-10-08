@@ -82,8 +82,11 @@ def HAL(B, E0s, weights, run_info, atoms_list, data_keys, start_configs, solver,
                 at.set_calculator(calculator)
                 at.info[data_keys["E"]] = at.get_potential_energy()
                 at.arrays[data_keys["F"]] = at.get_forces()
-                at.info[data_keys["V"]] = -1.0 * at.get_volume() * at.get_stress(voigt=False)
-            
+                try:
+                    at.info[data_keys["V"]] = -1.0 * at.get_volume() * at.get_stress(voigt=False)
+                except:
+                    pass
+                
             at.info["config_type"] = "HAL_" + at.info["config_type"]
 
             del at.arrays["momenta"]
