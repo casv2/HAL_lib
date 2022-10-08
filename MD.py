@@ -24,7 +24,7 @@ def Velocity_Verlet(ACE_IP, HAL_IP, at, dt, tau, baro_settings, thermo_settings)
     at.set_calculator(ACE_IP)
     F_bar = at.get_forces()
     at.set_calculator(HAL_IP)
-    F_bias = at.get_forces()
+    F_bias = HAL_IP.get_property('bias_forces',  at)
     forces = F_bar - tau * F_bias
 
     p = at.get_momenta()
@@ -42,7 +42,7 @@ def Velocity_Verlet(ACE_IP, HAL_IP, at, dt, tau, baro_settings, thermo_settings)
     at.set_calculator(ACE_IP)
     F_bar = at.get_forces()
     at.set_calculator(HAL_IP)
-    F_bias = at.get_forces()
+    F_bias = HAL_IP.get_property('bias_forces',  at)
     forces = F_bar - tau * F_bias
 
     p = at.get_momenta() + 0.5 * dt * forces

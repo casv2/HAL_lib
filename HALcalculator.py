@@ -68,7 +68,7 @@ function get_uncertainty(IPs, at; Freg=0.2)
 end
 """);
 
-from julia.Main import get_uncertainty, get_bias_forces
+from julia.Main import get_uncertainty, get_com_energies, get_bias_forces
 
 Main.eval("using ASE, JuLIP, ACE1")
 
@@ -80,7 +80,7 @@ class HALCalculator(Calculator):
     """
     ASE-compatible Calculator that calls JuLIP.jl for forces and energy
     """
-    implemented_properties = ['uncertainty', 'bias_forces']
+    implemented_properties = ['uncertainty', 'bias_forces', 'com_energies']
     default_parameters = {}
     name = 'JulipCalculator'
 
@@ -95,5 +95,7 @@ class HALCalculator(Calculator):
         self.results = {}
         if 'uncertainty' in properties:
             self.results['uncertainty'] = np.array(get_uncertainty(self.julip_calculator, julia_atoms))
+        if 'com_energies' in properties:
+            self.results['com_energies'] = np.array(get_com_energies(self.julip_calculator, julia_atoms))
         if 'bias_forces' in properties:
             self.results['bias_forces'] = np.array(get_bias_forces(self.julip_calculator, julia_atoms))
