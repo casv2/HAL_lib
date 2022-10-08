@@ -30,9 +30,12 @@ def assemble_lsq(B, E0s, atoms_list, data_keys, weights):
         Y[i:i+Frows] = weights["F"] * np.array(at.arrays[data_keys["F"]]).flatten()
         i += Frows
 
-        Vrows = 9
-        Psi[i:i+Vrows, :] = weights["V"] * np.reshape(np.array(virial(B, convert(ASEAtoms(at)))).flatten(), (len_B, Vrows)).transpose()
-        Y[i:i+Vrows] = weights["V"] * np.array(at.info[data_keys["V"]]).flatten()
+        try:
+            Vrows = 9
+            Psi[i:i+Vrows, :] = weights["V"] * np.reshape(np.array(virial(B, convert(ASEAtoms(at)))).flatten(), (len_B, Vrows)).transpose()
+            Y[i:i+Vrows] = weights["V"] * np.array(at.info[data_keys["V"]]).flatten()
+        except:
+            pass
 
     return Psi, Y
 
@@ -53,10 +56,13 @@ def add_lsq(B, E0s, at, data_keys, weights, Psi, Y):
     Y[row_count:row_count+Frows] = weights["F"] * np.array(at.arrays[data_keys["F"]]).flatten()
     row_count += Frows
 
-    Vrows = 9
-    Psi[row_count:row_count+Vrows, :] = weights["V"] * np.reshape(np.array(virial(B, convert(ASEAtoms(at)))).flatten(), (len_B, Vrows)).transpose()
-    Y[row_count:row_count+Vrows] = weights["V"] * np.array(at.info[data_keys["V"]]).flatten()
-    
+    try:
+        Vrows = 9
+        Psi[row_count:row_count+Vrows, :] = weights["V"] * np.reshape(np.array(virial(B, convert(ASEAtoms(at)))).flatten(), (len_B, Vrows)).transpose()
+        Y[row_count:row_count+Vrows] = weights["V"] * np.array(at.info[data_keys["V"]]).flatten()
+    except:
+        pass
+
     return Psi, Y
 
 def fit(Psi, Y, B, E0s, solver, ncomms=32):
