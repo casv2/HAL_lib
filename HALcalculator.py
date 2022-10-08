@@ -44,11 +44,21 @@ function get_bias_forces(IPs, at)
     Es = get_com_energies(IPs, at)
     Fs = get_com_forces(IPs, at)
 
-    varE = sum([ (Es[i] - Es[1])^2 for i in 1:nIPs])/nIPs
+    varE = 0
 
-    Fbias =  1/sqrt(varE) * sum([ 2*(Es[i] - Es[1])*(Fs[i] - Fs[1]) for i in 2:(nIPs-1)])/(nIPs-1)
+    @Threads.threads for i in 2:nIPs
+        varE += (Es[i] - Es[1])^2
+    end
 
-    return Fbias
+    varE = varE/(nIPs-1)
+
+    Fbias = Vector(undef,nIPs-1)
+
+    @Threads.threads for i in 2:nIPs
+        Fbias[i-1] = 2*(Es[i] - Es[1])*(Fs[i] - Fs[1])
+    end
+
+    return 1/sqrt(varE) * sum(Fbias)/(nIPs-1)
 end
 
 softmax(x) = exp.(x) ./ sum(exp.(x))
@@ -59,7 +69,13 @@ function get_uncertainty(IPs, at; Freg=0.2)
     nIPs = length(IPs)
     Fs = get_com_forces(IPs, at)
 
-    dFn = sum(hcat([norm.(Fs[m] - Fs[1]) for m in 1:length(Fs)]...), dims=2)/(nIPs-1)
+    dFn = Vector(undef, nIPs-1)
+
+    @Threads.threads for i in 2:nIPs
+        dFn[i-1] = norm.(Fs[i] - Fs[1])
+    end
+
+    dFn = sum(hcat(dFn...), dims=2)/(nIPs-1)
     Fn = norm.(Fs[1])
     
     p = softmax(dFn ./ (Fn .+ Freg))

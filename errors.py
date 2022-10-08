@@ -12,12 +12,8 @@ def print_errors(IP, al, data_keys):
         E_ACE.append(at.get_potential_energy()/len(at))
         F_ACE.append(at.get_forces())
 
-    F_DFT = np.array(F_DFT)
-    F_ACE = np.array(F_ACE)
-    inds = F_DFT[F_DFT < data_keys["Fmax"]]
-
     E_RMSE = np.sqrt(np.mean(np.power(np.array(E_DFT) - np.array(E_ACE), 2)))
-    F_RMSE = np.sqrt(np.mean(np.power(F_DFT[inds] - F_ACE[inds], 2)))
+    F_RMSE = np.sqrt(np.mean(np.power(np.array(F_DFT) - np.array(F_ACE), 2)))
 
     print("============================================")
     print("|  E   : {} meV/at |  F  :  {}  eV/A |".format(str(E_RMSE*1E3)[:5], str(F_RMSE)[:5]))
