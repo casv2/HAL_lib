@@ -65,7 +65,7 @@ def HAL(B, E0s, weights, run_info, atoms_list, data_keys, start_configs, solver,
                 Psi, Y = lsq.add_lsq(B, E0s, at, data_keys, weights, Psi, Y)
 
             if 'Fmax' in data_keys:
-                inds = Y[Y >= data_keys['Fmax']]
+                inds = np.where(Y >= data_keys['Fmax'])
                 Y[inds] = 0.0
                 Psi[inds, : ] = np.zeros(Psi.shape[0])
 
@@ -86,7 +86,7 @@ def HAL(B, E0s, weights, run_info, atoms_list, data_keys, start_configs, solver,
                     at.info[data_keys["V"]] = -1.0 * at.get_volume() * at.get_stress(voigt=False)
                 except:
                     pass
-                
+
             at.info["config_type"] = "HAL_" + at.info["config_type"]
 
             del at.arrays["momenta"]
