@@ -17,6 +17,8 @@ def full_basis(basis_info):
     Main.r_cut = basis_info["r_cut"]
 
     B = Main.eval("""
+            using ACE1: transformed_jacobi, transformed_jacobi_env
+
             Bsite = rpi_basis(species = Symbol.(elements),
                                 N = cor_order,       # correlation order = body-order - 1
                                 maxdeg = poly_deg_ACE,  # polynomial degree
@@ -25,12 +27,11 @@ def full_basis(basis_info):
                                 rcut = r_cut,   # domain for radial basis (cf documentation)
                                 pin = 2)                     # require smooth inner cutoff
 
-            Bpair = pair_basis(species = Symbol.(elements),
-                                r0 = r_0,
-                                maxdeg = poly_deg_pair,
-                                rcut = r_cut + 1.0,
-                                rin = 0.0,
-                                pin = 0 )   # pin = 0 means no inner cutoff
+            trans_r = AgnesiTransform(; r0=r_0, p = 2)
+            envelope_r = ACE1.PolyEnvelope(2, r_0, r_cut + 1.0)
+            Jnew = transformed_jacobi_env(poly_deg_pair, trans_r, envelope_r, r_cut + 1.0)
+
+            Bpair = PolyPairBasis(Jnew, Symbol.(elements))
 
             B = JuLIP.MLIPs.IPSuperBasis([Bpair, Bsite]);
             """)
