@@ -4,11 +4,14 @@ from HAL_lib import HAL
 from HAL_lib import ace_basis
 from ase.io import read, write
 
-al = read("../init.xyz", ":")
-start_configs = read("../init.xyz", ":")
+al = read("../init.xyz", ":") #training database
+start_configs = read("../init.xyz", ":") #'shopping list' configs you're going to loop HAL over
+
+data_keys = { "E" : "energy", "F" : "forces", "V" : "virial", "Fmax" : 20.0 } # data kets for reading energy/forces/virial, 
+                                                                              # Fmax maximum forces included in the fit (ignore all forces larger thanFmax)
 
 
-calculator = Castep()
+calculator = Castep() # DFT calculator 
 calculator._directory="./_CASTEP"
 calculator.param.cut_off_energy=300
 calculator.param.mixing_scheme='Pulay'
@@ -19,40 +22,37 @@ calculator.param.calculate_stress=True
 calculator.param.max_scf_cycles=250
 calculator.cell.kpoints_mp_spacing=0.04
 
-E0s = { "Ta" : -8431.3011, "W" : -9248.0405 }
+E0s = { "Ta" : -8431.3011, "W" : -9248.0405 } #E0s 
 
-weights = { "E" : 15.0, "F" : 1.0 ,"V": 1.0 }
+weights = { "E" : 15.0, "F" : 1.0 ,"V": 1.0 } #weights
 
-run_info = {
-    "niters" : 50,
-    "ncomms" : 32,
-    "nsteps" : 1000,
-    "dt" : 1.0,
+run_info = {         
+    "niters" : 50,  #HAL iterations
+    "ncomms" : 8,  #number of committee members
+    "nsteps" : 10000, #maximum HAL steps 
+    "dt" : 1.0, #timestep 
 
-    "tau_rel" : 0.05,
-    "tau_hist" : 100,
+    "tau_rel" : 0.05, #biasing (fractional biasing relative to the mean forces)
+    "tau_hist" : 100, #history for tuning the fractional biasing 
 
-    "softmax" : True,
-    "f_tol" : 0.2,
-    "eps" : 0.2,
+    "softmax" : True, #softmax uncertainty True (False => no softmax normalisation)
+    "f_tol" : 0.2, #uncertainty tolerance 0.2 - 0.5 
+    "eps" : 0.2, # regularising constant in fractional error Fu / (Fm + eps)
 
-    "thermo" : True,
-    "T" : 800,
-    "gamma" : 20.0,
+    "thermo" : True, # thermostat
+    "T" : 800, #temp [K]
+    "gamma" : 20.0, #thermostat 
 
-    "swap" : True,
+    "swap" : True, #atom swaps
     "swap_step" : 50,
 
-    "vol" : True,
-    "vol_step" : 50,
+    "vol" : True, #volume steps (adds gaussian noise to cell vectors)
+    "vol_step" : 10,
 
-    "baro" : False,
-    "P" : 10.0,
-    "mu" : 1e-4,
+    "baro" : False, #barostat
+    "P" : 10.0, #[GPa]
+    "mu" : 1e-4, #barostat 
 }
-
-data_keys = { "E" : "energy", "F" : "forces", "V" : "virial", "Fmax" : 20.0 }
-
 
 #######
 
@@ -84,14 +84,16 @@ B = Main.eval("""
                                 rcut = 5.5,   # domain for radial basis (cf documentation)
                                 pin = 2)                     # require smooth inner cutoff
 
-            trans_r = AgnesiTransform(; r0=2.8, p = 2)
-            envelope_r = ACE1.PolyEnvelope(2, 2.8, 6.5)
-            Jnew = transformed_jacobi_env(12, trans_r, envelope_r, 6.5)
+            trans_r = AgnesiTransform(; r0=2.8, p = 2) # 
+            envelope_r = ACE1.PolyEnvelope(2, 2.8, 6.5) # (1^(r^p)) scaling p=2, r0=2.8, rcut=6.5 
+            Jnew = transformed_jacobi_env(12, trans_r, envelope_r, 6.5) polynomial degree=12, rcut=6.5 (5.5 + 1.0)
 
             Bpair = PolyPairBasis(Jnew, [:W, :Ta])
 
             B = JuLIP.MLIPs.IPSuperBasis([Bpair, Bsite]);
             """)
 ####
+
+#B => ACE basis
 
 HAL.HAL(B, E0s, weights, run_info, al, data_keys, start_configs, BayesianRidge(), calculator=calculator)
