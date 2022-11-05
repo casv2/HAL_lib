@@ -72,10 +72,10 @@ def MC_vol_step(HAL_IP, at, tau, temp):
 
 def get_HAL_E(HAL_IP, at, tau):
     at.set_calculator(HAL_IP)
-    E_comms = HAL_IP.get_property('com_energies', at)
-    E_bar = E_comms[0]
+    E_bar, E_comms = HAL_IP.get_property('com_energies', at)
+    #E_bar = E_comms[0]
 
-    ncomms = len(E_comms)-1
+    ncomms = len(E_comms)
     E_std = np.sqrt((1/ncomms) * (np.sum([ np.power((E_bar - E_comms[i]), 2) for i in range(1, ncomms)]) ))
 
     return E_bar - tau * E_std
