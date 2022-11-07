@@ -75,7 +75,7 @@ def HAL(B, E0s, weights, run_info, atoms_list, data_keys, start_configs, solver,
             
             E_tot, E_kin, E_pot, T_s, P_s, f_s, at = run(ACE_IP, HAL_IP, current_config, nsteps, dt, tau_rel, f_tol, eps, baro_settings, thermo_settings, swap_settings, vol_settings, tau_hist=tau_hist, softmax=softmax)
 
-            plot(E_tot, E_kin, E_pot, T_s, P_s, f_s, m)
+            plot(E_tot, E_kin, E_pot, T_s, P_s, f_s, f_tol, m)
             utils.save_pot("HAL_it{}.json".format(m))
 
             if calculator != None:
@@ -151,7 +151,7 @@ def run(ACE_IP, HAL_IP, at, nsteps, dt, tau_rel, f_tol, eps, baro_settings, ther
     return E_tot[:i], E_kin[:i], E_pot[:i], T_s[:i], P_s[:i], f_s[:i], at
 
 
-def plot(E_tot, E_kin, E_pot, T_s, P_s, f_s, m):
+def plot(E_tot, E_kin, E_pot, T_s, P_s, f_s, f_tol, m):
     fig, axes = plt.subplots(figsize=(5,8), ncols=1, nrows=4)
     axes[0].plot(E_tot, label="E_tot")
     axes[0].plot(E_kin, label="E_kin")
@@ -159,12 +159,14 @@ def plot(E_tot, E_kin, E_pot, T_s, P_s, f_s, m):
     axes[1].plot(T_s)
     axes[2].plot(P_s)
     axes[3].plot(f_s)
+    axes[3].axhline(y=f_tol, color="red", label="f_tol")
     axes[0].set_ylabel("E [ev/atom]")
     axes[1].set_ylabel("T [K]")
     axes[2].set_ylabel("P [GPa]")
     axes[3].set_ylabel("max f_i")
     axes[3].set_xlabel("HAL steps")
-    axes[0].legend(loc="upper right")
+    axes[0].legend(loc="upper left")
+    axes[3].legend(loc="upper left")
     plt.tight_layout()
     plt.savefig("./plot_{}.pdf".format(m))
 
