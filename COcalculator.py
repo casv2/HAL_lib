@@ -32,7 +32,7 @@ function get_all_data(CO_IP, at)
 
     varE = varE/(nIPs)
 
-    Fbias = [ zeros(SVec{3,Float64}) for i in 1:nats` ]
+    Fbias = [ zeros(SVec{3,Float64}) for i in 1:nats ]
 
     @Threads.threads for j in 1:nats
         @Threads.threads for i in 1:nIPs
