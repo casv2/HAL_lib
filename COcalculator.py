@@ -77,7 +77,7 @@ class COcalculator(Calculator):
         julia_atoms = ASEAtoms(atoms)
         julia_atoms = convert(julia_atoms)
         self.results = {}
-        if 'all_data' in properties:
+        if 'force_data' in properties:
             self.results['force_data'] = get_force_data(self.julip_calculator, julia_atoms)
         if 'com_energies' in properties:
             self.results['com_energies'] = np.array(get_com_energies(self.julip_calculator, julia_atoms))
