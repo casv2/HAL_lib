@@ -49,9 +49,9 @@ function get_bias_forces(CO_IP, at)
     return 1/sqrt(varE) * sum(Fbias)/(nIPs)
 end
 
-softmax(x) = exp.(x) ./ sum(exp.(x))
+#softmax(x) = exp.(x) ./ sum(exp.(x))
 
-function get_uncertainty(CO_IP, at; Freg=0.2)
+function get_force_diff(CO_IP, at; Freg=0.2)
     GC.gc()
 
     F_bar, F_comms = get_com_forces(CO_IP, at)
@@ -64,15 +64,12 @@ function get_uncertainty(CO_IP, at; Freg=0.2)
     end
 
     dFn = sum(hcat(dFn...), dims=2)/nIPs
-    Fn = norm.(F_bar)
-    
-    p = softmax(dFn ./ (Fn .+ Freg))
 
-    return maximum(p)
+    return dFn
 end
 """);
 
-from julia.Main import get_uncertainty, get_com_energies, get_bias_forces
+from julia.Main import get_force_diff, get_com_energies, get_bias_forces
 
 Main.eval("using ASE, JuLIP, ACE1")
 
@@ -84,7 +81,7 @@ class COcalculator(Calculator):
     """
     ASE-compatible Calculator that calls JuLIP.jl for forces and energy
     """
-    implemented_properties = ['uncertainty', 'bias_forces', 'com_energies']
+    implemented_properties = ['force_diff', 'bias_forces', 'com_energies']
     default_parameters = {}
     name = 'JulipCalculator'
 
@@ -97,8 +94,8 @@ class COcalculator(Calculator):
         julia_atoms = ASEAtoms(atoms)
         julia_atoms = convert(julia_atoms)
         self.results = {}
-        if 'uncertainty' in properties:
-            self.results['uncertainty'] = np.array(get_uncertainty(self.julip_calculator, julia_atoms))
+        if 'force_diff' in properties:
+            self.results['force_diff'] = np.array(get_force_diff(self.julip_calculator, julia_atoms))
         if 'com_energies' in properties:
             self.results['com_energies'] = np.array(get_com_energies(self.julip_calculator, julia_atoms))
         if 'bias_forces' in properties:

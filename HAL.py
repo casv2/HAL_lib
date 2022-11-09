@@ -25,7 +25,7 @@ def HAL(B, E0s, weights, run_info, atoms_list, data_keys, start_configs, solver,
     tau_rel = run_info["tau_rel"]
     tau_hist = run_info["tau_hist"]
     dt = run_info["dt"]
-    f_tol = run_info["f_tol"]
+    tol = run_info["tol"]
     eps = run_info["eps"]
     softmax = run_info["softmax"]
 
@@ -73,7 +73,7 @@ def HAL(B, E0s, weights, run_info, atoms_list, data_keys, start_configs, solver,
 
             errors.print_errors(ACE_IP, atoms_list, data_keys)
             
-            E_tot, E_kin, E_pot, T_s, P_s, f_s, at = run(ACE_IP, HAL_IP, current_config, nsteps, dt, tau_rel, f_tol, eps, baro_settings, thermo_settings, swap_settings, vol_settings, tau_hist=tau_hist, softmax=softmax)
+            E_tot, E_kin, E_pot, T_s, P_s, f_s, at = run(ACE_IP, HAL_IP, current_config, nsteps, dt, tau_rel, tol, eps, baro_settings, thermo_settings, swap_settings, vol_settings, tau_hist=tau_hist, softmax=softmax)
 
             plot(E_tot, E_kin, E_pot, T_s, P_s, f_s, m)
             utils.save_pot("HAL_it{}.json".format(m))
@@ -97,7 +97,11 @@ def HAL(B, E0s, weights, run_info, atoms_list, data_keys, start_configs, solver,
     
     return atoms_list
 
-def run(ACE_IP, HAL_IP, at, nsteps, dt, tau_rel, f_tol, eps, baro_settings, thermo_settings, swap_settings, vol_settings, tau_hist=100, softmax=True):
+def softmax_func(x):
+    e_x = np.exp(x - np.max(x))
+    return e_x / e_x.sum()
+
+def run(ACE_IP, HAL_IP, at, nsteps, dt, tau_rel, tol, eps, baro_settings, thermo_settings, swap_settings, vol_settings, tau_hist=100, softmax=True):
     E_tot = np.zeros(nsteps)
     E_pot = np.zeros(nsteps)
     E_kin = np.zeros(nsteps)
@@ -133,19 +137,27 @@ def run(ACE_IP, HAL_IP, at, nsteps, dt, tau_rel, f_tol, eps, baro_settings, ther
             at = MC.MC_swap_step(HAL_IP, at, tau, thermo_settings["T"] * kB)
 
         at.set_calculator(ACE_IP)
+        F = at.get_forces()
+
         E_kin[i] = at.get_kinetic_energy()/len(at)
         E_pot[i] = (at.get_potential_energy() - E0)/len(at)
         E_tot[i] = E_kin[i] + E_pot[i]
         T_s[i] = (at.get_kinetic_energy()/len(at)) / (1.5 * kB)
         P_s[i] = -1.0 * (np.trace(at.get_stress(voigt=False))/3) / GPa
         at.set_calculator(HAL_IP)
-        f_s[i] = HAL_IP.get_property('uncertainty',  at)
 
-        if i > nsteps or f_s[i] > f_tol:
+        p = HAL_IP.get_property('force_diff',  at) / (np.linalg.norm(F, axis=1) + eps)
+
+        if softmax:
+            f_s[i] = np.max(softmax_func(p))
+        else:
+            f_s[i] = np.max(p)
+    
+        if i > nsteps or f_s[i] > tol:
             running=False
 
-        if (i % 100):
-            print("MD iteration: {}, tau: {}".format(i, tau))
+        if (i % 100) == 0:
+            print("HAL iteration: {}, tau: {}".format(i, tau))
 
         i += 1
 
