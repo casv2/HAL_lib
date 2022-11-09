@@ -16,7 +16,7 @@ function get_com_energies(CO_IP, at)
     return E_bar, E_comms
 end
 
-function get_all_data(CO_IP, at)
+function get_force_data(CO_IP, at)
     GC.gc()
 
     nats = length(at)
@@ -36,7 +36,7 @@ function get_all_data(CO_IP, at)
 
     @Threads.threads for j in 1:nats
         @Threads.threads for i in 1:nIPs
-            Fbias[j] += 2*(E_comms[i] - E_bar)*(F_comms[i][j] - F1[j])
+            Fbias[j] += 2*(E_comms[i] - E_bar)*(F_comms[i][j] - F_bar[j])
         end
     end
 
@@ -52,7 +52,7 @@ function get_all_data(CO_IP, at)
 end
 """);
 
-from julia.Main import get_all_data, get_com_energies
+from julia.Main import get_force_data, get_com_energies
 
 Main.eval("using ASE, JuLIP, ACE1")
 
@@ -64,7 +64,7 @@ class COcalculator(Calculator):
     """
     ASE-compatible Calculator that calls JuLIP.jl for forces and energy
     """
-    implemented_properties = ['all_data', 'com_energies']
+    implemented_properties = ['force_data', 'com_energies']
     default_parameters = {}
     name = 'JulipCalculator'
 
@@ -78,7 +78,7 @@ class COcalculator(Calculator):
         julia_atoms = convert(julia_atoms)
         self.results = {}
         if 'all_data' in properties:
-            self.results['all_data'] = get_all_data(self.julip_calculator, julia_atoms)
+            self.results['force_data'] = get_force_data(self.julip_calculator, julia_atoms)
         if 'com_energies' in properties:
             self.results['com_energies'] = np.array(get_com_energies(self.julip_calculator, julia_atoms))
         # if 'bias_forces' in properties:

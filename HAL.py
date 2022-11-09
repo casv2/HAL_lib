@@ -125,8 +125,8 @@ def run(ACE_IP, CO_IP, at, nsteps, dt, tau_rel, tol, eps, baro_settings, thermo_
 
         at = MD.Velocity_Verlet(ACE_IP, CO_IP, np.array(F_bar), np.array(F_bias), at, dt * fs, tau, baro_settings=baro_settings, thermo_settings=thermo_settings)
         
-        m_F_bar[i] = np.mean(np.array(F_bar))
-        m_F_bias[i] = np.mean(np.array(F_bias))
+        m_F_bar[i] = np.mean(np.linalg.norm(F_bar, axis=1))
+        m_F_bias[i] = np.mean(np.linalg.norm(F_bias, axis=1))
 
         if i > tau_hist:
             tau = (tau_rel * np.mean(m_F_bar[i-tau_hist:i])) / np.mean(m_F_bias[i-tau_hist:i])
@@ -157,7 +157,7 @@ def run(ACE_IP, CO_IP, at, nsteps, dt, tau_rel, tol, eps, baro_settings, thermo_
             running=False
 
         #if (i % 100) == 0:
-        print("HAL iteration: {}, tau: {}".format(i, tau))
+        print("HAL iteration: {}, tau: {}, f_i {}".format(i, tau, f_s[i]))
 
         i += 1
 
