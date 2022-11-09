@@ -2,8 +2,8 @@ import numpy as np
 
 
 ## swap step
-def MC_swap_step(HAL_IP, at, tau, temp):
-    E1 = get_HAL_E(HAL_IP, at, tau)
+def MC_swap_step(CO_IP, at, tau, temp):
+    E1 = get_HAL_E(CO_IP, at, tau)
 
     els = at.get_chemical_symbols()
     ms = at.get_masses()
@@ -27,7 +27,7 @@ def MC_swap_step(HAL_IP, at, tau, temp):
     at[i2].symbol = el1
     at[i2].mass = m1
 
-    E2 = get_HAL_E(HAL_IP, at, tau)
+    E2 = get_HAL_E(CO_IP, at, tau)
 
     p = np.exp((E1 - E2) / (temp))
 
@@ -50,15 +50,15 @@ def MC_swap_step(HAL_IP, at, tau, temp):
 
 
 ## vol step
-def MC_vol_step(HAL_IP, at, tau, temp):
+def MC_vol_step(CO_IP, at, tau, temp):
     C1 = at.cell
     C2 = at.cell + np.random.normal(0.0, 0.05, size=(3, 3))
 
-    E1 = get_HAL_E(HAL_IP, at, tau)
+    E1 = get_HAL_E(CO_IP, at, tau)
 
     at.set_cell(C2, scale_atoms=True)
 
-    E2 = get_HAL_E(HAL_IP, at, tau)
+    E2 = get_HAL_E(CO_IP, at, tau)
 
     p = np.exp((E1 - E2) / (temp))
 
@@ -70,10 +70,9 @@ def MC_vol_step(HAL_IP, at, tau, temp):
         at.set_cell(C1, scale_atoms=True)
         return at
 
-def get_HAL_E(HAL_IP, at, tau):
-    at.set_calculator(HAL_IP)
-    E_bar, E_comms = HAL_IP.get_property('com_energies', at)
-    #E_bar = E_comms[0]
+def get_HAL_E(CO_IP, at, tau):
+    at.set_calculator(CO_IP)
+    E_bar, E_comms = CO_IP.get_property('com_energies', at)
 
     ncomms = len(E_comms)
     E_std = np.sqrt((1/ncomms) * (np.sum([ np.power((E_bar - E_comms[i]), 2) for i in range(1, ncomms)]) ))
