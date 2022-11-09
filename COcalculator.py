@@ -19,6 +19,7 @@ end
 function get_all_data(CO_IP, at)
     GC.gc()
 
+    nats = length(at)
     E_bar, E_comms = ACE1.co_energy(CO_IP, at)
     F_bar, F_comms = ACE1.co_forces(CO_IP, at)
 
@@ -31,21 +32,23 @@ function get_all_data(CO_IP, at)
 
     varE = varE/(nIPs)
 
-    Fbias = Vector(undef,nIPs)
+    Fbias = [ zeros(SVec{3,Float64}) for i in 1:nats` ]
 
-    @Threads.threads for i in 1:nIPs
-        Fbias[i] = 2*(E_comms[i] - E_bar)*(F_comms[i] - F_bar)
+    @Threads.threads for j in 1:nats
+        @Threads.threads for i in 1:nIPs
+            Fbias[j] += 2*(E_comms[i] - E_bar)*(F_comms[i][j] - F1[j])
+        end
     end
 
-    dFn = Vector(undef, nIPs)
+    dFn = zeros(nats)
 
-    @Threads.threads for i in 1:nIPs
-        dFn[i] = norm.(F_comms[i] - F_bar)
+    @Threads.threads for j in 1:nats
+        @Threads.threads for i in 1:nIPs
+            dFn[j] += norm(F_comms[i][j] - F_bar[j])
+        end
     end
 
-    dFn = sum(hcat(dFn...), dims=2)
-
-    return F_bar, 1/sqrt(varE) * sum(Fbias)/(nIPs), dFn/(nIPs)
+    return F_bar, 1/sqrt(varE) * (Fbias/(nIPs)), dFn/(nIPs)
 end
 """);
 
