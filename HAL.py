@@ -1,3 +1,4 @@
+import sys
 from copy import deepcopy
 import numpy as np
 
@@ -55,6 +56,8 @@ def HAL(B, E0s, weights, run_info, atoms_list, data_keys, start_configs, solver,
         print(f"HAL start_config {j}")
         for i in range(niters):
             print(f"HAL iter {i}")
+            sys.stdout.flush()
+
             start_config.calc = None
             current_config = deepcopy(start_config)
             m = j*niters + i
@@ -148,6 +151,7 @@ def run(ACE_IP, HAL_IP, at, nsteps, dt, tau_rel, f_tol, eps, baro_settings, ther
 
         if (i % 100) or not running:
             print(("final " if not running else "") + "MD iteration: {}, tau: {}".format(i, tau))
+            sys.stdout.flush()
 
         i += 1
 
