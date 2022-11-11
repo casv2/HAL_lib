@@ -1,7 +1,5 @@
 import numpy as np
 
-from HAL_lib import com
-
 from ase.units import kB
 from ase.units import GPa
 

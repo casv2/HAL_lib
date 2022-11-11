@@ -81,5 +81,3 @@ class COcalculator(Calculator):
             self.results['force_data'] = get_force_data(self.julip_calculator, julia_atoms)
         if 'com_energies' in properties:
             self.results['com_energies'] = np.array(get_com_energies(self.julip_calculator, julia_atoms))
-        # if 'bias_forces' in properties:
-        #     self.results['bias_forces'] = np.array(get_bias_forces(self.julip_calculator, julia_atoms))

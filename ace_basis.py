@@ -5,7 +5,6 @@ from julia import Main
 Main.eval("using ASE, JuLIP, ACE1")
 
 from HAL_lib import ACEcalculator
-#from HAL_lib import HALcalculator
 from HAL_lib import COcalculator
 
 def full_basis(basis_info):
@@ -51,5 +50,4 @@ def combine(B, c, E0s, comms):
     Main.eval("Bsite_com = ACE1.committee_potential(Bsite, c[length(Bpair)+1:end], transpose(comms[:, length(Bpair)+1:end]))")
     IPs = Main.eval("CO_IP = JuLIP.MLIPs.SumIP(Bpair_com, Bsite_com)")
     return ACEcalculator.ACECalculator("ACE_IP"), COcalculator.COcalculator("CO_IP") 
-    #return COcalculator.COCalculator("CO_IP")
     

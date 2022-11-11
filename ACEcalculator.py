@@ -1,6 +1,6 @@
 import numpy as np
 from ase.calculators.calculator import Calculator
-from ase.constraints import voigt_6_to_full_3x3_stress, full_3x3_to_voigt_6_stress
+from ase.constraints import full_3x3_to_voigt_6_stress
 
 from julia.api import Julia
 jl = Julia(compiled_modules=False)
@@ -8,7 +8,7 @@ jl = Julia(compiled_modules=False)
 from julia import Main
 Main.eval("using ASE, JuLIP, ACE1")
 
-from julia.JuLIP import energy, forces, stress, mat, positions, cell
+from julia.JuLIP import energy, forces, stress
 
 ASEAtoms = Main.eval("ASEAtoms(a) = ASE.ASEAtoms(a)")
 ASECalculator = Main.eval("ASECalculator(c) = ASE.ASECalculator(c)")

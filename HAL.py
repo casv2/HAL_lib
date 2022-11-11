@@ -2,9 +2,7 @@ from copy import deepcopy
 import numpy as np
 
 from HAL_lib import lsq
-from HAL_lib import ace_basis
 from HAL_lib import MD
-from HAL_lib import com
 from HAL_lib import MC
 from HAL_lib import utils
 from HAL_lib import errors
@@ -18,7 +16,6 @@ from ase.io import write
 import matplotlib.pyplot as plt
 
 def HAL(B, E0s, weights, run_info, atoms_list, data_keys, start_configs, solver, calculator=None): #calculator
-    #general settings
     niters = run_info["niters"]
     ncomms = run_info["ncomms"]
     nsteps = run_info["nsteps"]
@@ -29,13 +26,11 @@ def HAL(B, E0s, weights, run_info, atoms_list, data_keys, start_configs, solver,
     eps = run_info["eps"]
     softmax = run_info["softmax"]
 
-    #
     baro_settings = { "baro" : False}
     thermo_settings = { "thermo" : False}
     swap_settings = { "swap" : False}
     vol_settings = { "vol" : False}
 
-    #baro/thermo on or not
     if run_info["baro"] == True:
         baro_settings["baro"] = True
         baro_settings["target_pressure"] = run_info["P"]
@@ -157,7 +152,6 @@ def run(ACE_IP, CO_IP, at, nsteps, dt, tau_rel, tol, eps, baro_settings, thermo_
         if i > nsteps or f_s[i] > tol:
             running=False
 
-        #if (i % 100) == 0:
         print("HAL iteration: {}, tau: {}, max f_i {}".format(i, tau, f_s[i]))
 
         i += 1
