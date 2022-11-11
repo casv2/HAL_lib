@@ -27,3 +27,17 @@ Example scripts are provided in the `tutorials` folder. A HAL run requires the f
 - HAL parameters for sampling strategy (biasing strength, uncertainty tolerance, temperature, pressure)
 
 Threading is advised to be enabled by setting environment `JULIA_NUM_THREADS` for Julia threading and `MKL_NUM_THREADS`/`OPENMP_NUM_THREADS`/`BLAS_NUM_THREADS` to enable numpy/scikit-learn threading
+
+### References:
+
+Please cite 
+
+```
+@misc{van2022hyperactive,
+  doi = {10.48550/ARXIV.2210.04225},
+  url = {https://arxiv.org/abs/2210.04225},
+  author = {van der Oord, Cas and Sachs, Matthias and Kov{\'a}cs, D{\'a}vid P{\'e}ter and Ortner, Christoph and Cs{\'a}nyi, G{\'a}bor},
+  title = {Hyperactive Learning (HAL) for Data-Driven Interatomic Potentials},
+  publisher = {arXiv},
+  year = {2022},
+}
