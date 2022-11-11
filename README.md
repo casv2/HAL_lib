@@ -1,7 +1,7 @@
 
-## Hyperactive Learning (HAL) Python interface for Atomic Cluster Expansion (ACE.jl) 
+## Hyperactive Learning (HAL) Python interface for Atomic Cluster Expansion (ACE1.jl) 
 
-This package uses the ACE.jl Julia software package to build linear ACE interatomic potentials (ACE.jl).
+This package uses the ACE.jl Julia software package to build linear ACE interatomic potentials (ACE1.jl).
 
 ### Installation instructions:
 
