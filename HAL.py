@@ -52,7 +52,9 @@ def HAL(B, E0s, weights, run_info, atoms_list, data_keys, start_configs, solver,
         vol_settings["vol_step"] = run_info["vol_step"]
     
     for (j, start_config) in enumerate(start_configs):
+        print(f"HAL start_config {j}")
         for i in range(niters):
+            print(f"HAL iter {i}")
             start_config.calc = None
             current_config = deepcopy(start_config)
             m = j*niters + i
@@ -141,10 +143,14 @@ def run(ACE_IP, HAL_IP, at, nsteps, dt, tau_rel, f_tol, eps, baro_settings, ther
         f_s[i] = com.get_fi(HAL_IP, at, eps, softmax=softmax)
 
         if i > nsteps or f_s[i] > f_tol:
+            if i > nsteps:
+                at.info["HAL_trigger"] = f"max_iter_{i}"
+            else:
+                at.info["HAL_trigger"] = f"force_tol_{f_s[i]}_iter_{i}"
             running=False
 
-        if (i % 100):
-            print("MD iteration: {}, tau: {}".format(i, tau))
+        if (i % 100) or not running:
+            print(("final " if not running else "") + "MD iteration: {}, tau: {}".format(i, tau))
 
         i += 1
 
