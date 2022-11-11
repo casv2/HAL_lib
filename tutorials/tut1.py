@@ -32,13 +32,13 @@ calculator.cell.kpoints_mp_spacing=0.04
 # ACE1.jl parameters to set up a linear ACE basis
 # Polynomial envelope is default, can be changed if needed
 basis_info = {
-    "elements" : ["Al", "Si"],
-    "cor_order" : 2,
-    "poly_deg_ACE" : 7,
-    "poly_deg_pair" : 7,
-    "r_0" : 1.8,
-    "r_in" : 0.5,
-    "r_cut" : 5.5 }
+    "elements" : ["Al", "Si"],    # elements in ACE basis
+    "cor_order" : 2,              # maximum correlation order 
+    "poly_deg_ACE" : 7,           # polynomial degree in ACE basis
+    "poly_deg_pair" : 7,          # polynomial degree in auxiliary pair potential
+    "r_0" : 1.8,                  # typical nearest neighbour distance
+    "r_in" : 0.5,                 # ACE inner cutoff (0.5 is default)
+    "r_cut" : 5.5 }               # ACE outer cutoff (0.5 is default) (pair outer cutoff = ACE cutoff + 1.0 Å)
 
 B = ace_basis.full_basis(basis_info);
 
@@ -49,31 +49,31 @@ E0s = { "Al" : -105.8114973092, "Si" : -163.2225204255 }
 ###################################
 # HAL parameter info for HAL runs
 run_info = {
-    "niters" : 100,
-    "ncomms" : 8,
-    "nsteps" : 1000,
-    "tau_rel" : 0.2,
-    "tau_hist" : 50,
+    "niters" : 100,               # number of iterations per start config in `start_configs`
+    "ncomms" : 8,                 # number of committee members (8 is default)
+    "nsteps" : 1000,              # total number of HAL steps until 
     
-    "dt" : 0.5,
-    "gamma" : 500.0,
-    "softmax" : False,
-    "tol" : 0.2,
-    "eps" : 0.2,
-
-    "swap" : True,
-    "swap_step" : 10,
-
-    "vol" : False,
-    "vol_step" : 10,
-
-    "baro" : True,
-    "P" : 10.0,
-    "mu" : 1e-6, 
+    "tau_rel" : 0.2,              # "fractional" relative biasing strength relative to regular MD forces
+    "tau_hist" : 50,              # (burn-in) history used to tune biasing strength
     
-    "thermo" : True,
-    "T" : 500,
-    "gamma" : 20.0,
+    "dt" : 0.5,                   # timestep (in fs)
+    "softmax" : False,            # softmax normalisation of relative (force) uncertainty, (default is False)
+    "tol" : 0.2,                  # relative force uncertainty tolerance (0.2 is default)
+    "eps" : 0.2,                  # regularising constant in relative uncertainty F_var / (F_bar + eps)
+
+    "swap" : True,                # MC atoms swaps (random alloys) (default is False)
+    "swap_step" : 10,             # occurence of MC swap steps
+
+    "vol" : False,                # MC volume steps (default is False)
+    "vol_step" : 10,              # occurence of MC volume steps
+
+    "baro" : True,                # barostat
+    "P" : 10.0,                   # pressure (in GPa)
+    "mu" : 1e-6,                  # barostat control parameter
+    
+    "thermo" : True,              # thermostat
+    "T" : 500,                    # temperature (in K)
+    "gamma" : 20.0,               # thermostat control parameter
 }
 
 ###################################
