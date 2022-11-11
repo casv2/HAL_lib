@@ -30,7 +30,7 @@ Threading is advised to be enabled by setting environment `JULIA_NUM_THREADS` fo
 
 ### References:
 
-Please cite 
+If using this code please reference
 
 ```
 @misc{van2022hyperactive,
