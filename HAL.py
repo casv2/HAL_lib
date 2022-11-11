@@ -142,17 +142,17 @@ def run(ACE_IP, HAL_IP, at, nsteps, dt, tau_rel, f_tol, eps, baro_settings, ther
         P_s[i] = -1.0 * (np.trace(at.get_stress(voigt=False))/3) / GPa
         f_s[i] = com.get_fi(HAL_IP, at, eps, softmax=softmax)
 
-        if i > nsteps or f_s[i] > f_tol:
-            if i > nsteps:
-                at.info["HAL_trigger"] = f"max_iter_{i}"
-            else:
-                at.info["HAL_trigger"] = f"force_tol_{f_s[i]}_iter_{i}"
+        if f_s[i] > f_tol:
+            at.info["HAL_trigger"] = f"force_tol_{f_s[i]}_iter_{i}"
             running=False
 
         if (i % 100) or not running:
             print(("final " if not running else "") + "MD iteration: {}, tau: {}".format(i, tau))
 
         i += 1
+
+    if "HAL_trigger" not in at.info:
+        at.info["HAL_trigger"] = f"finished_iter_{i}"
 
     return E_tot[:i], E_kin[:i], E_pot[:i], T_s[:i], P_s[:i], f_s[:i], at
 
