@@ -6,7 +6,7 @@ This package builds ACE interatomic potentials using Hyperactive Learning (HAL) 
 ### Installation instructions:
 
 1. install julia 1.7.x and python 3.8 or 3.9 (with python ase, scikit-learn, matplotlib and numpy installed)
-2. run julia command 
+2. run julia command (make sure latest ACE1.jl is installed including committee potential support)
 
 ```using Pkg; Pkg.activate("."); pkg"registry add https://github.com/JuliaRegistries/General"; pkg"registry add https://github.com/JuliaMolSim/MolSim.git"; pkg"add ACE1, ASE, JuLIP and LinearAlgebra"```
 
