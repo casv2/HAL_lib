@@ -121,10 +121,13 @@ def run(ACE_IP, CO_IP, at, nsteps, dt, tau_rel, tol, eps, baro_settings, thermo_
         at.set_calculator(CO_IP)
         F_bar, F_bias, dFn = CO_IP.get_property('force_data',  at) 
 
-        at = MD.timestep(ACE_IP, CO_IP, np.array(F_bar), np.array(F_bias), at, dt * fs, tau, baro_settings=baro_settings, thermo_settings=thermo_settings)
+        at = MD.timestep(ACE_IP, np.array(F_bar), np.array(F_bias), at, dt * fs, tau, baro_settings=baro_settings, thermo_settings=thermo_settings)
         
-        m_F_bar[i] = np.mean(np.linalg.norm(F_bar, axis=1))
-        m_F_bias[i] = np.mean(np.linalg.norm(F_bias, axis=1))
+        F_bar_norms = np.linalg.norm(F_bar, axis=1)
+        F_bias_norms = np.linalg.norm(F_bias, axis=1)
+
+        m_F_bar[i] = np.mean(F_bar_norms)
+        m_F_bias[i] = np.mean(F_bias_norms)
 
         if i > tau_hist:
             tau = (tau_rel * np.mean(m_F_bar[i-tau_hist:i])) / np.mean(m_F_bias[i-tau_hist:i])
@@ -144,7 +147,7 @@ def run(ACE_IP, CO_IP, at, nsteps, dt, tau_rel, tol, eps, baro_settings, thermo_
         T_s[i] = (at.get_kinetic_energy()/len(at)) / (1.5 * kB)
         P_s[i] = -1.0 * (np.trace(at.get_stress(voigt=False))/3) / GPa
 
-        p = dFn / (np.linalg.norm(F_bar, axis=1) + eps)
+        p = dFn / (F_bar_norms + eps)
 
         if softmax:
             f_s[i] = np.max(softmax_func(p))
