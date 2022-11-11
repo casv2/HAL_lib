@@ -176,7 +176,7 @@ def plot(E_tot, E_kin, E_pot, T_s, P_s, f_s, tol, m):
     axes[0].set_ylabel("E [ev/atom]")
     axes[1].set_ylabel("T [K]")
     axes[2].set_ylabel("P [GPa]")
-    axes[3].set_ylabel("max f_i")
+    axes[3].set_ylabel("max relative uncertainty")
     axes[3].set_xlabel("HAL steps")
     axes[0].legend(loc="upper left")
     axes[3].legend(loc="upper left")
