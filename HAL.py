@@ -121,7 +121,7 @@ def run(ACE_IP, CO_IP, at, nsteps, dt, tau_rel, tol, eps, baro_settings, thermo_
         at.set_calculator(CO_IP)
         F_bar, F_bias, dFn = CO_IP.get_property('force_data',  at) 
 
-        at = MD.Velocity_Verlet(ACE_IP, CO_IP, np.array(F_bar), np.array(F_bias), at, dt * fs, tau, baro_settings=baro_settings, thermo_settings=thermo_settings)
+        at = MD.timestep(ACE_IP, CO_IP, np.array(F_bar), np.array(F_bias), at, dt * fs, tau, baro_settings=baro_settings, thermo_settings=thermo_settings)
         
         m_F_bar[i] = np.mean(np.linalg.norm(F_bar, axis=1))
         m_F_bias[i] = np.mean(np.linalg.norm(F_bias, axis=1))
