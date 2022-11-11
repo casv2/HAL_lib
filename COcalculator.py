@@ -26,7 +26,7 @@ function get_force_data(CO_IP, at)
     nIPs = length(E_comms)
 
     varE = 0
-    @Threads.threads for i in 1:nIPs
+    @sync for i in 1:nIPs
         varE += (E_comms[i] - E_bar)^2
     end
 
