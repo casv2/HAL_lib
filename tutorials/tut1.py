@@ -14,17 +14,12 @@ start_configs = al
 data_keys = { "E" : "energy", "F" : "forces", "V" : "virial", "Fmax" : 20.0 }
 
 ###################################
-# Setting up CASTEP (DFT) calculator, any ASE calculator can be used here
-calculator = Castep()
-calculator._directory="./_CASTEP"
-calculator.param.cut_off_energy=300
-calculator.param.mixing_scheme='Pulay'
-calculator.param.write_checkpoint='none'
-calculator.param.smearing_width=0.1
-calculator.param.finite_basis_corr='automatic'
-calculator.param.calculate_stress=True
-calculator.param.max_scf_cycles=250
-calculator.cell.kpoints_mp_spacing=0.04
+# Isolated atom energies
+E0s = { "Al" : -105.8114973092, "Si" : -163.2225204255 }
+
+###################################
+# weights of fitting, 15/1/1 is default
+weights = { "E" : 15.0, "F" : 1.0 ,"V": 1.0 }
 
 ###################################
 # ACE1.jl parameters to set up a linear ACE basis
@@ -41,8 +36,17 @@ basis_info = {
 B = ace_basis.full_basis(basis_info);
 
 ###################################
-# Isolated atom energies
-E0s = { "Al" : -105.8114973092, "Si" : -163.2225204255 }
+# Setting up CASTEP (DFT) calculator, any ASE calculator can be used here
+calculator = Castep()
+calculator._directory="./_CASTEP"
+calculator.param.cut_off_energy=300
+calculator.param.mixing_scheme='Pulay'
+calculator.param.write_checkpoint='none'
+calculator.param.smearing_width=0.1
+calculator.param.finite_basis_corr='automatic'
+calculator.param.calculate_stress=True
+calculator.param.max_scf_cycles=250
+calculator.cell.kpoints_mp_spacing=0.04
 
 ###################################
 # HAL parameter info for HAL runs
@@ -73,9 +77,5 @@ run_info = {
     "T" : 500,                    # temperature (in K)
     "gamma" : 20.0,               # thermostat control parameter
 }
-
-###################################
-# weights of fitting, 15/1/1 is default
-weights = { "E" : 15.0, "F" : 1.0 ,"V": 1.0 }
 
 HAL.HAL(B, E0s, weights, run_info, al, data_keys, start_configs, BayesianRidge(fit_intercept=False), calculator=calculator)
