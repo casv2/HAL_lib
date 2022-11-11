@@ -57,8 +57,6 @@ def HAL(B, E0s, weights, run_info, atoms_list, data_keys, start_configs, solver,
             current_config = deepcopy(start_config)
             m = j*niters + i
 
-            #B = ace_basis.full_basis(basis_info);
-
             if m == 0:
                 Psi, Y = lsq.assemble_lsq(B, E0s, atoms_list, data_keys, weights)
             else:
