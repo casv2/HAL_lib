@@ -26,4 +26,4 @@ Example scripts are provided in the `tutorials` folder. A HAL run requires the f
 - ACE parameters for linear ACE basis in Julia (correlation order, polynomial degree)
 - HAL parameters for sampling strategy (biasing strength, uncertainty tolerance, temperature, pressure)
 
-Threading is advised to be enabled by setting environment `JULIA_NUM_THREADS` for Julia threading and `MKL_NUM_THREADS`/`OPENMP_NUM_THREADS`/`BLAS_NUM_THREADS` to enable numpy/sklearn threading
+Threading is advised to be enabled by setting environment `JULIA_NUM_THREADS` for Julia threading and `MKL_NUM_THREADS`/`OPENMP_NUM_THREADS`/`BLAS_NUM_THREADS` to enable numpy/scikit-learn threading
