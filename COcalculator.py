@@ -33,14 +33,10 @@ function get_force_data(CO_IP, at)
     varE = varE/(nIPs)
 
     Fbias = [ zeros(SVec{3,Float64}) for i in 1:nats ]
-
-    @sync for j in 1:nats, i in 1:nIPs
-        Fbias[j] += 2*(E_comms[i] - E_bar)*(F_comms[i][j] - F_bar[j])
-    end
-
     dFn = zeros(nats)
 
     @sync for j in 1:nats, i in 1:nIPs
+        Fbias[j] += 2*(E_comms[i] - E_bar)*(F_comms[i][j] - F_bar[j])
         dFn[j] += norm(F_comms[i][j] - F_bar[j])
     end
 
