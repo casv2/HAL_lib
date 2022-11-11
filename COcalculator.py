@@ -34,18 +34,14 @@ function get_force_data(CO_IP, at)
 
     Fbias = [ zeros(SVec{3,Float64}) for i in 1:nats ]
 
-    @Threads.threads for j in 1:nats
-        @Threads.threads for i in 1:nIPs
-            Fbias[j] += 2*(E_comms[i] - E_bar)*(F_comms[i][j] - F_bar[j])
-        end
+    @sync for j in 1:nats, i in 1:nIPs
+        Fbias[j] += 2*(E_comms[i] - E_bar)*(F_comms[i][j] - F_bar[j])
     end
 
     dFn = zeros(nats)
 
-    @Threads.threads for j in 1:nats
-        @Threads.threads for i in 1:nIPs
-            dFn[j] += norm(F_comms[i][j] - F_bar[j])
-        end
+    @sync for j in 1:nats, i in 1:nIPs
+        dFn[j] += norm(F_comms[i][j] - F_bar[j])
     end
 
     return F_bar, 1/sqrt(varE) * (Fbias/(nIPs)), dFn/(nIPs)
