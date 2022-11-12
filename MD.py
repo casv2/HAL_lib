@@ -1,7 +1,5 @@
 import numpy as np
 
-from HAL_lib import com
-
 from ase.units import kB
 from ase.units import GPa
 
@@ -20,8 +18,7 @@ def barostat(ACE_IP, at, mu, target_pressure):
     at.set_cell(at.cell * scale, scale_atoms=True)
     return at
 
-def Velocity_Verlet(ACE_IP, HAL_IPs, at, dt, tau, baro_settings, thermo_settings):
-    F_bar, F_bias = com.get_F_bias(HAL_IPs, at)
+def timestep(ACE_IP, F_bar, F_bias, at, dt, tau, baro_settings, thermo_settings):
     forces = F_bar - tau * F_bias
 
     p = at.get_momenta()
@@ -36,16 +33,7 @@ def Velocity_Verlet(ACE_IP, HAL_IPs, at, dt, tau, baro_settings, thermo_settings
     r = at.get_positions()
     at.set_positions(r + dt * p / masses)
 
-    F_bar, F_bias = com.get_F_bias(HAL_IPs, at)
-    forces = F_bar - tau * F_bias
-
-    p = at.get_momenta() + 0.5 * dt * forces
-
-    if thermo_settings["thermo"] == True: 
-        p = random_p_update(p, masses, thermo_settings["gamma"], thermo_settings["T"] * kB, dt)
-    at.set_momenta(p)
-
     if baro_settings["baro"] == True:
         at = barostat(ACE_IP, at, baro_settings["mu"], baro_settings["target_pressure"])
 
-    return at, np.mean(np.linalg.norm(F_bar, axis=1)), np.mean(np.linalg.norm(F_bias, axis=1))
+    return at

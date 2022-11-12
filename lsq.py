@@ -77,9 +77,9 @@ def fit(Psi, Y, B, E0s, solver, ncomms=32):
             r = np.zeros(len(c))
             r[non_zeros] = sigma[:, i]
             sigma_large[r_ind, :] = r
-        comms = np.random.multivariate_normal(c, sigma_large, size=ncomms)
+        comms = np.random.multivariate_normal(c, 0.5*(sigma_large + sigma_large.T), size=ncomms)
     else:
-        comms = np.random.multivariate_normal(c, sigma, size=ncomms)
+        comms = np.random.multivariate_normal(c, 0.5*(sigma + sigma.T), size=ncomms)
     
     IP, IPs = ace_basis.combine(B, c, E0s, comms)
     

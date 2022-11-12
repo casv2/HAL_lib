@@ -3,9 +3,7 @@ from copy import deepcopy
 import numpy as np
 
 from HAL_lib import lsq
-from HAL_lib import ace_basis
 from HAL_lib import MD
-from HAL_lib import com
 from HAL_lib import MC
 from HAL_lib import utils
 from HAL_lib import errors
@@ -19,24 +17,21 @@ from ase.io import write
 import matplotlib.pyplot as plt
 
 def HAL(B, E0s, weights, run_info, atoms_list, data_keys, start_configs, solver, calculator=None): #calculator
-    #general settings
     niters = run_info["niters"]
     ncomms = run_info["ncomms"]
     nsteps = run_info["nsteps"]
     tau_rel = run_info["tau_rel"]
     tau_hist = run_info["tau_hist"]
     dt = run_info["dt"]
-    f_tol = run_info["f_tol"]
+    tol = run_info["tol"]
     eps = run_info["eps"]
     softmax = run_info["softmax"]
 
-    #
     baro_settings = { "baro" : False}
     thermo_settings = { "thermo" : False}
     swap_settings = { "swap" : False}
     vol_settings = { "vol" : False}
 
-    #baro/thermo on or not
     if run_info["baro"] == True:
         baro_settings["baro"] = True
         baro_settings["target_pressure"] = run_info["P"]
@@ -62,8 +57,6 @@ def HAL(B, E0s, weights, run_info, atoms_list, data_keys, start_configs, solver,
             current_config = deepcopy(start_config)
             m = j*niters + i
 
-            #B = ace_basis.full_basis(basis_info);
-
             if m == 0:
                 Psi, Y = lsq.assemble_lsq(B, E0s, atoms_list, data_keys, weights)
             else:
@@ -74,13 +67,13 @@ def HAL(B, E0s, weights, run_info, atoms_list, data_keys, start_configs, solver,
                 Y[inds] = 0.0
                 Psi[inds,:] = np.zeros(Psi.shape[1])
 
-            ACE_IP, HAL_IP = lsq.fit(Psi, Y, B, E0s, solver, ncomms=ncomms)
+            ACE_IP, CO_IP = lsq.fit(Psi, Y, B, E0s, solver, ncomms=ncomms)
 
             errors.print_errors(ACE_IP, atoms_list, data_keys)
             
-            E_tot, E_kin, E_pot, T_s, P_s, f_s, at = run(ACE_IP, HAL_IP, current_config, nsteps, dt, tau_rel, f_tol, eps, baro_settings, thermo_settings, swap_settings, vol_settings, tau_hist=tau_hist, softmax=softmax)
+            E_tot, E_kin, E_pot, T_s, P_s, f_s, at = run(ACE_IP, CO_IP, current_config, nsteps, dt, tau_rel, tol, eps, baro_settings, thermo_settings, swap_settings, vol_settings, tau_hist=tau_hist, softmax=softmax)
 
-            plot(E_tot, E_kin, E_pot, T_s, P_s, f_s, f_tol, m)
+            plot(E_tot, E_kin, E_pot, T_s, P_s, f_s, tol, m)
             utils.save_pot("HAL_it{}.json".format(m))
 
             if calculator != None:
@@ -102,7 +95,11 @@ def HAL(B, E0s, weights, run_info, atoms_list, data_keys, start_configs, solver,
     
     return atoms_list
 
-def run(ACE_IP, HAL_IP, at, nsteps, dt, tau_rel, f_tol, eps, baro_settings, thermo_settings, swap_settings, vol_settings, tau_hist=100, softmax=True):
+def softmax_func(x):
+    e_x = np.exp(x - np.max(x))
+    return e_x / e_x.sum()
+
+def run(ACE_IP, CO_IP, at, nsteps, dt, tau_rel, tol, eps, baro_settings, thermo_settings, swap_settings, vol_settings, tau_hist=100, softmax=True):
     E_tot = np.zeros(nsteps)
     E_pot = np.zeros(nsteps)
     E_kin = np.zeros(nsteps)
@@ -121,10 +118,13 @@ def run(ACE_IP, HAL_IP, at, nsteps, dt, tau_rel, f_tol, eps, baro_settings, ther
 
     tau=0.0
     while running and i < nsteps:
-        at, F_bar_mean, F_bias_mean = MD.Velocity_Verlet(ACE_IP, HAL_IP, at, dt * fs, tau, baro_settings=baro_settings, thermo_settings=thermo_settings)
-        
-        m_F_bar[i] = F_bar_mean
-        m_F_bias[i] = F_bias_mean
+        at.set_calculator(CO_IP)
+        F_bar, F_bias, F_bar_norms, F_bias_norms, dFn  = CO_IP.get_property('force_data',  at) 
+
+        at = MD.timestep(ACE_IP, np.array(F_bar), np.array(F_bias), at, dt * fs, tau, baro_settings=baro_settings, thermo_settings=thermo_settings)
+
+        m_F_bar[i] = np.mean(F_bar_norms)
+        m_F_bias[i] = np.mean(F_bias_norms)
 
         if i > tau_hist:
             tau = (tau_rel * np.mean(m_F_bar[i-tau_hist:i])) / np.mean(m_F_bias[i-tau_hist:i])
@@ -132,10 +132,10 @@ def run(ACE_IP, HAL_IP, at, nsteps, dt, tau_rel, f_tol, eps, baro_settings, ther
             tau = 0.0
 
         if (vol_settings["vol"] == True) and (i % vol_settings["vol_step"] == 0):
-            at = MC.MC_vol_step(HAL_IP, at, tau, thermo_settings["T"] * kB)
+            at = MC.MC_vol_step(CO_IP, at, tau, thermo_settings["T"] * kB)
 
         if (swap_settings["swap"] == True) and (i % swap_settings["swap_step"] == 0):
-            at = MC.MC_swap_step(HAL_IP, at, tau, thermo_settings["T"] * kB)
+            at = MC.MC_swap_step(CO_IP, at, tau, thermo_settings["T"] * kB)
 
         at.set_calculator(ACE_IP)
         E_kin[i] = at.get_kinetic_energy()/len(at)
@@ -143,15 +143,20 @@ def run(ACE_IP, HAL_IP, at, nsteps, dt, tau_rel, f_tol, eps, baro_settings, ther
         E_tot[i] = E_kin[i] + E_pot[i]
         T_s[i] = (at.get_kinetic_energy()/len(at)) / (1.5 * kB)
         P_s[i] = -1.0 * (np.trace(at.get_stress(voigt=False))/3) / GPa
-        f_s[i] = com.get_fi(HAL_IP, at, eps, softmax=softmax)
 
-        if f_s[i] > f_tol:
+        p = dFn / (F_bar_norms + eps)
+
+        if softmax:
+            f_s[i] = np.max(softmax_func(p))
+        else:
+            f_s[i] = np.max(p)
+    
+        if f_s[i] > tol:
             at.info["HAL_trigger"] = f"force_tol_{f_s[i]}_iter_{i}"
             running=False
 
-        if (i % 100) or not running:
-            print(("final " if not running else "") + "MD iteration: {}, tau: {}".format(i, tau))
-            sys.stdout.flush()
+        print("HAL iteration: {}, tau: {}, max f_i {}".format(i, tau, f_s[i]))
+        sys.stdout.flush()
 
         i += 1
 
@@ -161,7 +166,7 @@ def run(ACE_IP, HAL_IP, at, nsteps, dt, tau_rel, f_tol, eps, baro_settings, ther
     return E_tot[:i], E_kin[:i], E_pot[:i], T_s[:i], P_s[:i], f_s[:i], at
 
 
-def plot(E_tot, E_kin, E_pot, T_s, P_s, f_s, f_tol, m):
+def plot(E_tot, E_kin, E_pot, T_s, P_s, f_s, tol, m):
     fig, axes = plt.subplots(figsize=(5,8), ncols=1, nrows=4)
     axes[0].plot(E_tot, label="E_tot")
     axes[0].plot(E_kin, label="E_kin")
@@ -169,11 +174,11 @@ def plot(E_tot, E_kin, E_pot, T_s, P_s, f_s, f_tol, m):
     axes[1].plot(T_s)
     axes[2].plot(P_s)
     axes[3].plot(f_s)
-    axes[3].axhline(y=f_tol, color="red", label="f_tol")
+    axes[3].axhline(y=tol, color="red", label="tol")
     axes[0].set_ylabel("E [ev/atom]")
     axes[1].set_ylabel("T [K]")
     axes[2].set_ylabel("P [GPa]")
-    axes[3].set_ylabel("max f_i")
+    axes[3].set_ylabel("max relative uncertainty")
     axes[3].set_xlabel("HAL steps")
     axes[0].legend(loc="upper left")
     axes[3].legend(loc="upper left")
