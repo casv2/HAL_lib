@@ -50,9 +50,6 @@ def HAL(B, E0s, weights, run_info, atoms_list, data_keys, start_configs, solver,
     for (j, start_config) in enumerate(start_configs):
         print(f"HAL start_config {j}")
         for i in range(niters):
-            print(f"HAL iter {i}")
-            sys.stdout.flush()
-
             start_config.calc = None
             current_config = deepcopy(start_config)
             m = j*niters + i
