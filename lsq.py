@@ -72,15 +72,16 @@ def fit(Psi, Y, B, E0s, solver, ncomms=32):
     score = solver.scores_[-1]
 
     # Code below is for ARD solver, TO DO:
-    # if sigma.shape[0] != len(c):
-    #     sigma_large = np.zeros((len(c), len(c)))
-    #     non_zeros = np.nonzero(c)
-    #     for (i, r_ind) in enumerate(non_zeros):
-    #         r = np.zeros(len(c))
-    #         r[non_zeros] = sigma[:, i]
-    #         sigma_large[r_ind, :] = r
-    #     comms = np.random.multivariate_normal(c, 0.5*(sigma_large + sigma_large.T), size=ncomms)
-    # else:
+    if sigma.shape[0] != len(c):
+        sigma_large = np.zeros((len(c), len(c)))
+        non_zeros = np.nonzero(c)
+        for (i, r_ind) in enumerate(non_zeros):
+            r = np.zeros(len(c))
+            r[non_zeros] = sigma[:, i]
+            sigma_large[r_ind, :] = r
+        sigma = sigma_large
+        #comms = np.random.multivariate_normal(c, 0.5*(sigma_large + sigma_large.T), size=ncomms)
+    #else:
 
     sigma_min_eig_val = np.min(np.real(np.linalg.eigvals(sigma)))
     sigma_reg = sigma + (np.eye(sigma.shape[0]) * np.abs(sigma_min_eig_val))
