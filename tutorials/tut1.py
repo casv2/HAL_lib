@@ -78,4 +78,4 @@ run_info = {
     "gamma" : 20.0,               # thermostat control parameter
 }
 
-HAL.HAL(B, E0s, weights, run_info, al, data_keys, start_configs, BayesianRidge(fit_intercept=False), calculator=calculator)
+HAL.HAL(B, E0s, weights, run_info, al, data_keys, start_configs, BayesianRidge(fit_intercept=False, compute_score=True), calculator=calculator)

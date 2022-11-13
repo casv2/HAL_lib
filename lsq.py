@@ -69,17 +69,26 @@ def fit(Psi, Y, B, E0s, solver, ncomms=32):
     solver.fit(Psi, Y)
     c = solver.coef_
     sigma = solver.sigma_
+    score = solver.scores_[-1]
 
-    if sigma.shape[0] != len(c):
-        sigma_large = np.zeros((len(c), len(c)))
-        non_zeros = np.nonzero(c)
-        for (i, r_ind) in enumerate(non_zeros):
-            r = np.zeros(len(c))
-            r[non_zeros] = sigma[:, i]
-            sigma_large[r_ind, :] = r
-        comms = np.random.multivariate_normal(c, 0.5*(sigma_large + sigma_large.T), size=ncomms)
-    else:
-        comms = np.random.multivariate_normal(c, 0.5*(sigma + sigma.T), size=ncomms)
+    # Code below is for ARD solver, TO DO:
+    # if sigma.shape[0] != len(c):
+    #     sigma_large = np.zeros((len(c), len(c)))
+    #     non_zeros = np.nonzero(c)
+    #     for (i, r_ind) in enumerate(non_zeros):
+    #         r = np.zeros(len(c))
+    #         r[non_zeros] = sigma[:, i]
+    #         sigma_large[r_ind, :] = r
+    #     comms = np.random.multivariate_normal(c, 0.5*(sigma_large + sigma_large.T), size=ncomms)
+    # else:
+
+    sigma_min_eig_val = np.min(np.real(np.linalg.eigvals(sigma)))
+    sigma_reg = sigma + (np.eye(sigma.shape[0]) * np.abs(sigma_min_eig_val))
+    sigma_reg_min_eig_val = np.min(np.real(np.linalg.eigvals(sigma_reg)))
+
+    print("sigma min eigval: {}, sigma_reg min eigval: {}, score: {}".format(sigma_min_eig_val, sigma_reg_min_eig_val, score))
+
+    comms = np.random.multivariate_normal(c, sigma_reg, size=ncomms)
     
     IP, IPs = ace_basis.combine(B, c, E0s, comms)
     
