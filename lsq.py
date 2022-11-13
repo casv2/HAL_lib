@@ -83,7 +83,7 @@ def fit(Psi, Y, B, E0s, solver, ncomms=32):
     # else:
 
     sigma_min_eig_val = np.min(np.real(np.linalg.eigvals(sigma)))
-    sigma_reg = sigma + (np.eye(sigma.shape[0]) * sigma_min_eig_val)
+    sigma_reg = sigma + (np.eye(sigma.shape[0]) * np.abs(sigma_min_eig_val))
     sigma_reg_min_eig_val = np.min(np.real(np.linalg.eigvals(sigma_reg)))
 
     print("sigma min eigval: {}, sigma_reg min eigval: {}, score: {}".format(sigma_min_eig_val, sigma_reg_min_eig_val, score))
