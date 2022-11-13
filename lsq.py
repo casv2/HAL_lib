@@ -82,10 +82,11 @@ def fit(Psi, Y, B, E0s, solver, ncomms=32):
     #     comms = np.random.multivariate_normal(c, 0.5*(sigma_large + sigma_large.T), size=ncomms)
     # else:
 
-    min_eig_val = np.min(np.real(np.linalg.eigvals(sigma)))
-    sigma_reg = sigma + (np.eye(sigma.shape[0]) * min_eig_val)
+    sigma_min_eig_val = np.min(np.real(np.linalg.eigvals(sigma)))
+    sigma_reg = sigma + (np.eye(sigma.shape[0]) * sigma_min_eig_val)
+    sigma_reg_min_eig_val = np.min(np.real(np.linalg.eigvals(sigma_reg)))
 
-    print("sigma min eig val: {}, score: {}".format(min_eig_val, score))
+    print("sigma min eigval: {}, sigma_reg min eigval: {}, score: {}".format(sigma_min_eig_val, sigma_reg_min_eig_val, score))
 
     comms = np.random.multivariate_normal(c, sigma_reg, size=ncomms)
     
