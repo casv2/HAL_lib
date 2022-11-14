@@ -82,4 +82,4 @@ run_info = {
 #solver = BayesianRidge(fit_intercept=False, compute_score=True)
 solver = ARDRegression(fit_intercept=False, compute_score=True)
 
-HAL.HAL(B, E0s, weights, run_info, al, data_keys, start_configs, ARD(fit_intercept=False, compute_score=True), calculator=calculator)
+HAL.HAL(B, E0s, weights, run_info, al, data_keys, start_configs, solver, calculator=calculator)
