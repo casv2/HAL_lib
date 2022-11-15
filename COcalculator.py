@@ -18,12 +18,12 @@ end
 
 function get_force_data(CO_IP, at)
     GC.gc()
-
-    nats = length(at)
+    
     E_bar, E_comms = ACE1.co_energy(CO_IP, at)
     F_bar, F_comms = ACE1.co_forces(CO_IP, at)
 
     nIPs = length(E_comms)
+    nats = length(at)
 
     varE = 0
     @sync for i in 1:nIPs
@@ -40,8 +40,8 @@ function get_force_data(CO_IP, at)
         dFn[j] += norm(F_comms[i][j] - F_bar[j])
     end
 
-    F_bias = 1/(sqrt(varE)) * (F_bias/(nIPs))
-    dFn = dFn/(nIPs)
+    F_bias = (1/sqrt(varE)) * (F_bias/(nIPs))
+    dFn = (dFn/(nIPs))
 
     F_bar_norms = zeros(nats)
     F_bias_norms = zeros(nats)
