@@ -51,7 +51,7 @@ calculator.cell.kpoints_mp_spacing=0.04
 ###################################
 # HAL parameter info for HAL runs
 run_info = {
-    "niters" : 100,               # number of iterations per start config in `start_configs`
+    "niters" : 5,               # number of iterations per start config in `start_configs`
     "ncomms" : 8,                 # number of committee members (8 is default)
     "nsteps" : 1000,              # max number of exploratory HAL steps until QM/DFT calculation is triggered 
     
