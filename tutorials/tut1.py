@@ -78,8 +78,8 @@ run_info = {
     "gamma" : 20.0,               # thermostat control parameter
 }
 
-## scikit-learn solver option, either BRR or ARD, make sure to set fit_intercept=False and compute_score=True in either
-#solver = BayesianRidge(fit_intercept=False, compute_score=True)
-solver = ARDRegression(fit_intercept=False, compute_score=True)
+## scikit-learn solver option, either BRR or ARD, make sure to set fit_intercept=False and compute_score=True in either (default is BRR)
+solver = BayesianRidge(fit_intercept=False, compute_score=True)
+#solver = ARDRegression(fit_intercept=False, compute_score=True)
 
 HAL.HAL(B, E0s, weights, run_info, al, data_keys, start_configs, solver, calculator=calculator)
