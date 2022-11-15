@@ -22,7 +22,7 @@ def timestep(ACE_IP, F_bar, F_bias, at, dt, tau, baro_settings, thermo_settings)
     forces = F_bar - tau * F_bias
 
     p = at.get_momenta()
-    p += 0.5 * dt * forces
+    p += dt * forces
     
     masses = at.get_masses()[:, np.newaxis]
 
