@@ -6,7 +6,7 @@ from ase.io import read, write
 
 ###################################
 # Reading in initial database (`al`), formed of 1-10 configurations 
-# `start_configs` are the configuration to start HAL from, here identical to `al`
+# `start_configs` are the configuration to start HAL from, here identical to `al`, it is advised to start varying sized supercells of relaxed configs
 al = read("./init.xyz", ":")
 start_configs = al
 
