@@ -31,7 +31,7 @@ basis_info = {
     "poly_deg_pair" : 7,          # polynomial degree in auxiliary pair potential
     "r_0" : 1.8,                  # typical nearest neighbour distance
     "r_in" : 0.5,                 # ACE inner cutoff (0.5 is default)
-    "r_cut" : 5.5 }               # ACE outer cutoff (0.5 is default) (pair outer cutoff = ACE cutoff + 1.0 Å)
+    "r_cut" : 5.5 }               # ACE outer cutoff (4.5-5.5 is default) (pair outer cutoff = ACE cutoff + 1.0 Å)
 
 B = ace_basis.full_basis(basis_info);
 
