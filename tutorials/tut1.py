@@ -27,8 +27,8 @@ weights = { "E" : 15.0, "F" : 1.0 ,"V": 1.0 }
 basis_info = {
     "elements" : ["Al", "Si"],    # elements in ACE basis
     "cor_order" : 2,              # maximum correlation order 
-    "poly_deg_ACE" : 7,           # polynomial degree in ACE basis
-    "poly_deg_pair" : 7,          # polynomial degree in auxiliary pair potential
+    "poly_deg_ACE" : 12,           # polynomial degree in ACE basis
+    "poly_deg_pair" : 12,          # polynomial degree in auxiliary pair potential
     "r_0" : 1.8,                  # typical nearest neighbour distance
     "r_in" : 0.5,                 # ACE inner cutoff (0.5 is default)
     "r_cut" : 5.5 }               # ACE outer cutoff (4.5-5.5 is default) (pair outer cutoff = ACE cutoff + 1.0 Å)
@@ -51,7 +51,7 @@ calculator.cell.kpoints_mp_spacing=0.04
 ###################################
 # HAL parameter info for HAL runs
 run_info = {
-    "niters" : 100,               # number of iterations per start config in `start_configs`
+    "niters" : 5,               # number of iterations per start config in `start_configs`
     "ncomms" : 8,                 # number of committee members (8 is default)
     "nsteps" : 1000,              # max number of exploratory HAL steps until QM/DFT calculation is triggered 
     
