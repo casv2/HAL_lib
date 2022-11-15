@@ -5,11 +5,12 @@ def print_errors(IP, al, data_keys, CO_IP, eps):
     F_DFT = []
     for at in al:
         F_DFT.extend(at.arrays[data_keys["F"]])
+    F_DFT = np.asarray(F_DFT)
 
     E_ACE = []
     F_ACE = []
 
-    rel_F_err = []
+    rel_pred_F_err = []
 
     for at in al:
         at.set_calculator(IP)
@@ -18,13 +19,19 @@ def print_errors(IP, al, data_keys, CO_IP, eps):
 
         F_bar, F_bias, F_bar_norms, F_bias_norms, dFn  = CO_IP.get_property('force_data',  at)
         p = dFn / (F_bar_norms + eps)
-        rel_F_err.extend(p)
+        rel_pred_F_err.extend(p)
+    F_ACE = np.asarray(F_ACE)
+    rel_pred_F_err = np.asarray(rel_pred_F_err)
+
+    max_pred_err_i = np.argmax(rel_pred_F_err)
+
+    # rel_actual_F_err = np.linalg.norm(F_ACE - F_DFT, axis=1) / (np.linalg.norm(F_DFT, axis=1) + eps)
+    # max_actual_err_i = np.argmax(rel_actual_F_err)
 
     E_RMSE = np.sqrt(np.mean(np.power(np.asarray(E_DFT) - np.asarray(E_ACE), 2)))
-    F_RMSE = np.sqrt(np.mean(np.power(np.asarray(F_DFT) - np.asarray(F_ACE), 2)))
-    rel_F_err_max = np.max(np.asarray(rel_F_err))
+    F_RMSE = np.sqrt(np.mean(np.power(F_DFT - F_ACE, 2)))
 
-    l = f"|  E   : {E_RMSE*1.0e3:7.3f} meV/at |  F  :  {F_RMSE:7.3f}  eV/A |  rel_F_max : {rel_F_err_max:7.3f} |"
+    l = (f"| E : {E_RMSE*1.0e3:7.3f} meV/at | F : {F_RMSE:7.3f} eV/A | max(pred rel F err) : {rel_pred_F_err[max_pred_err_i]:7.3f} |")
     print("=" * len(l))
     print(l)
     print("=" * len(l))
