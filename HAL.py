@@ -1,6 +1,7 @@
 import sys
 from copy import deepcopy
 import numpy as np
+import time
 
 from HAL_lib import lsq
 from HAL_lib import MD
@@ -54,6 +55,7 @@ def HAL(B, E0s, weights, run_info, atoms_list, data_keys, start_configs, solver,
             current_config = deepcopy(start_config)
             m = j*niters + i
 
+            t0 = time.time()
             if m == 0:
                 Psi, Y = lsq.assemble_lsq(B, E0s, atoms_list, data_keys, weights)
             else:
@@ -65,10 +67,18 @@ def HAL(B, E0s, weights, run_info, atoms_list, data_keys, start_configs, solver,
                 Psi[inds,:] = np.zeros(Psi.shape[1])
 
             ACE_IP, CO_IP = lsq.fit(Psi, Y, B, E0s, solver, ncomms=ncomms)
+            print("TIMING fit", time.time() - t0)
+            t0 = time.time()
 
             errors.print_errors(ACE_IP, atoms_list, data_keys, CO_IP, eps)
+
+            print("TIMING errors", time.time() - t0)
+            t0 = time.time()
             
             E_tot, E_kin, E_pot, T_s, P_s, f_s, at = run(ACE_IP, CO_IP, current_config, nsteps, dt, tau_rel, tol, eps, baro_settings, thermo_settings, swap_settings, vol_settings, tau_hist=tau_hist, softmax=softmax)
+
+            print("TIMING run", time.time() - t0)
+            t0 = time.time()
 
             plot(E_tot, E_kin, E_pot, T_s, P_s, f_s, tol, m)
             utils.save_pot("HAL_it{}.json".format(m))
@@ -84,6 +94,9 @@ def HAL(B, E0s, weights, run_info, atoms_list, data_keys, start_configs, solver,
                     at.info[data_keys["V"]] = -1.0 * at.get_volume() * at.get_stress(voigt=False)
                 except:
                     pass
+
+            print("TIMING reference calculation", time.time() - t0)
+            t0 = time.time()
 
             at.info["config_type"] = "HAL_" + at.info["config_type"]
 
