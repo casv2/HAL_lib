@@ -19,12 +19,13 @@ def barostat(ACE_IP, at, mu, target_pressure):
     return at
 
 def VelocityVerlet(ACE_IP, CO_IP, at, dt, tau, baro_settings, thermo_settings):
-    F_bar, F_bias, F_bar_norms, F_bias_norms, dFn  = CO_IP.get_property('force_data',  at) 
-    forces = np.array(F_bar) - tau * np.array(F_bias)
+    if "HAL_forces" in at.arrays:
+        forces = at.arrays["HAL_forces"]
+    else:
+        F_bar, F_bias, F_bar_norms, F_bias_norms, dFn  = CO_IP.get_property('force_data',  at) 
+        forces = np.array(F_bar) - tau * np.array(F_bias)
 
-    p = at.get_momenta()
-    p += 0.5 * dt * forces
-    
+    p = at.get_momenta() + 0.5 * dt * forces
     masses = at.get_masses()[:, np.newaxis]
 
     if thermo_settings["thermo"] == True: 
@@ -36,12 +37,9 @@ def VelocityVerlet(ACE_IP, CO_IP, at, dt, tau, baro_settings, thermo_settings):
 
     F_bar, F_bias, F_bar_norms, F_bias_norms, dFn  = CO_IP.get_property('force_data',  at) 
     forces = np.array(F_bar) - tau * np.array(F_bias)
+    at.arrays["HAL_forces"] = forces
 
     p = at.get_momenta() + 0.5 * dt * forces
-
-    if thermo_settings["thermo"] == True: 
-        p = random_p_update(p, masses, thermo_settings["gamma"], thermo_settings["T"] * kB, dt)
-    at.set_momenta(p)
 
     if baro_settings["baro"] == True:
         at = barostat(ACE_IP, at, baro_settings["mu"], baro_settings["target_pressure"])

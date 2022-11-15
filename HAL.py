@@ -73,6 +73,9 @@ def HAL(B, E0s, weights, run_info, atoms_list, data_keys, start_configs, solver,
             plot(E_tot, E_kin, E_pot, T_s, P_s, f_s, tol, m)
             utils.save_pot("HAL_it{}.json".format(m))
 
+            del at.arrays["momenta"]
+            del at.arrays["HAL_forces"]
+
             if calculator != None:
                 at.set_calculator(calculator)
                 at.info[data_keys["E"]] = at.get_potential_energy()
@@ -83,8 +86,6 @@ def HAL(B, E0s, weights, run_info, atoms_list, data_keys, start_configs, solver,
                     pass
 
             at.info["config_type"] = "HAL_" + at.info["config_type"]
-
-            del at.arrays["momenta"]
 
             write("HAL_it{}.extxyz".format(m), at)
 
