@@ -6,7 +6,7 @@ from ase.io import read, write
 
 ###################################
 # Reading in initial database (`al`), formed of 1-10 configurations 
-# `start_configs` are the configuration to start HAL from, here identical to `al`
+# `start_configs` are the configuration to start HAL from, here identical to `al`, it is advised to start varying sized supercells of relaxed configs
 al = read("./init.xyz", ":")
 start_configs = al
 
@@ -31,7 +31,7 @@ basis_info = {
     "poly_deg_pair" : 7,          # polynomial degree in auxiliary pair potential
     "r_0" : 1.8,                  # typical nearest neighbour distance
     "r_in" : 0.5,                 # ACE inner cutoff (0.5 is default)
-    "r_cut" : 5.5 }               # ACE outer cutoff (0.5 is default) (pair outer cutoff = ACE cutoff + 1.0 Å)
+    "r_cut" : 5.5 }               # ACE outer cutoff (4.5-5.5 is default) (pair outer cutoff = ACE cutoff + 1.0 Å)
 
 B = ace_basis.full_basis(basis_info);
 
@@ -53,7 +53,7 @@ calculator.cell.kpoints_mp_spacing=0.04
 run_info = {
     "niters" : 100,               # number of iterations per start config in `start_configs`
     "ncomms" : 8,                 # number of committee members (8 is default)
-    "nsteps" : 1000,              # total number of HAL steps until 
+    "nsteps" : 1000,              # max number of exploratory HAL steps until QM/DFT calculation is triggered 
     
     "tau_rel" : 0.2,              # "fractional" relative biasing strength relative to regular MD forces
     "tau_hist" : 50,              # (burn-in) history used to tune biasing strength
@@ -78,8 +78,8 @@ run_info = {
     "gamma" : 20.0,               # thermostat control parameter
 }
 
-## scikit-learn solver option, either BRR or ARD, make sure to set fit_intercept=False and compute_score=True in either
-#solver = BayesianRidge(fit_intercept=False, compute_score=True)
-solver = ARDRegression(fit_intercept=False, compute_score=True)
+## scikit-learn solver option, either BRR or ARD, make sure to set fit_intercept=False and compute_score=True in either (default is BRR)
+solver = BayesianRidge(fit_intercept=False, compute_score=True)
+#solver = ARDRegression(fit_intercept=False, compute_score=True)
 
 HAL.HAL(B, E0s, weights, run_info, al, data_keys, start_configs, solver, calculator=calculator)
