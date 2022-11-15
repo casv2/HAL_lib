@@ -53,7 +53,7 @@ calculator.cell.kpoints_mp_spacing=0.04
 run_info = {
     "niters" : 100,               # number of iterations per start config in `start_configs`
     "ncomms" : 8,                 # number of committee members (8 is default)
-    "nsteps" : 1000,              # total number of HAL steps until 
+    "nsteps" : 1000,              # max number of exploratory HAL steps until QM/DFT calculation is triggered 
     
     "tau_rel" : 0.2,              # "fractional" relative biasing strength relative to regular MD forces
     "tau_hist" : 50,              # (burn-in) history used to tune biasing strength
