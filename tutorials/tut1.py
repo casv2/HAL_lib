@@ -27,8 +27,8 @@ weights = { "E" : 15.0, "F" : 1.0 ,"V": 1.0 }
 basis_info = {
     "elements" : ["Al", "Si"],    # elements in ACE basis
     "cor_order" : 2,              # maximum correlation order 
-    "poly_deg_ACE" : 7,           # polynomial degree in ACE basis
-    "poly_deg_pair" : 7,          # polynomial degree in auxiliary pair potential
+    "poly_deg_ACE" : 12,           # polynomial degree in ACE basis
+    "poly_deg_pair" : 12,          # polynomial degree in auxiliary pair potential
     "r_0" : 1.8,                  # typical nearest neighbour distance
     "r_in" : 0.5,                 # ACE inner cutoff (0.5 is default)
     "r_cut" : 5.5 }               # ACE outer cutoff (4.5-5.5 is default) (pair outer cutoff = ACE cutoff + 1.0 Å)
