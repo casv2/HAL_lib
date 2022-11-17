@@ -10,7 +10,7 @@ from ase.io import read, write
 al = read("./init.xyz", ":")
 start_configs = al
 
-# info/arrays keys storing the DFT info of the initial database, `Fmax` can be used to exclude large forces to the design matrix
+# info/arrays keys storing the DFT info of the initial database, `Fmax` can be used to exclude large forces from the design matrix
 data_keys = { "E" : "energy", "F" : "forces", "V" : "virial", "Fmax" : 20.0 }
 
 ###################################
