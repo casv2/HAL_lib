@@ -34,6 +34,7 @@ def assemble_lsq(B, E0s, atoms_list, data_keys, weights):
             Vrows = 9
             Psi[i:i+Vrows, :] = weights["V"] * np.reshape(np.array(virial(B, convert(ASEAtoms(at)))).flatten(), (len_B, Vrows)).transpose()
             Y[i:i+Vrows] = weights["V"] * np.array(at.info[data_keys["V"]]).flatten()
+            i += Vrows
         except:
             pass
 
@@ -60,6 +61,7 @@ def add_lsq(B, E0s, at, data_keys, weights, Psi, Y):
         Vrows = 9
         Psi[row_count:row_count+Vrows, :] = weights["V"] * np.reshape(np.array(virial(B, convert(ASEAtoms(at)))).flatten(), (len_B, Vrows)).transpose()
         Y[row_count:row_count+Vrows] = weights["V"] * np.array(at.info[data_keys["V"]]).flatten()
+        i += Vrows
     except:
         pass
 
