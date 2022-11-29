@@ -12,58 +12,73 @@ from julia.JuLIP import energy, forces, virial
 convert = Main.eval("julip_at(a) = JuLIP.Atoms(a)")
 ASEAtoms = Main.eval("ASEAtoms(a) = ASE.ASEAtoms(a)")
 
-def assemble_lsq(B, E0s, atoms_list, data_keys, weights):
-    num_obs = np.sum([1 + len(at)*3 + 9 for at in atoms_list])
-    len_B = Main.eval("length(B)")
+def lsq_section(B, E0s, at, data_keys, weights, Fmax=np.Infinity):
+    Psi = []
+    Y = []
 
-    Psi = np.zeros((num_obs, len_B))
-    Y = np.zeros(num_obs)
+    # len_B = Main.eval("length(B)")
 
-    i = 0
-    for at in atoms_list:
-        Psi[i,:] = weights["E"] * np.array(energy(B, convert(ASEAtoms(at)))).flatten() 
-        Y[i] = weights["E"] * (np.array(at.info[data_keys["E"]]).flatten() - np.sum([at.get_chemical_symbols().count(EL) * E0 for EL, E0 in E0s.items()]))
-        i += 1
+    if data_keys["E"] in at.info:
+        # N_B
+        E_B = np.array(energy(B, convert(ASEAtoms(at))))
+        Psi.append(weights["E"] * E_B)
+        Y.append(weights["E"] * (at.info[data_keys["E"]] - np.sum([at.get_chemical_symbols().count(EL) * E0 for EL, E0 in E0s.items()])))
 
-        Frows = len(at)*3
-        Psi[i:i+Frows, :] = weights["F"] * np.reshape(np.array(forces(B, convert(ASEAtoms(at)))).flatten(), (len_B, Frows)).transpose()
-        Y[i:i+Frows] = weights["F"] * np.array(at.arrays[data_keys["F"]]).flatten()
-        i += Frows
+    if data_keys["F"] in at.arrays:
+        # N_B x N_atoms x 3
+        F_B = np.array(forces(B, convert(ASEAtoms(at))))
 
-        try:
-            Vrows = 9
-            Psi[i:i+Vrows, :] = weights["V"] * np.reshape(np.array(virial(B, convert(ASEAtoms(at)))).flatten(), (len_B, Vrows)).transpose()
-            Y[i:i+Vrows] = weights["V"] * np.array(at.info[data_keys["V"]]).flatten()
-            i += Vrows
-        except:
-            pass
+        # filter F <= Fmax
+        F = at.arrays[data_keys["F"]]
+        F_filter = np.linalg.norm(F, axis=1) <= Fmax
+        F = F[F_filter, :]
+
+        # N_B x (N_atoms with not too large F) x 3
+        F_B = F_B[:, F_filter, :]
+
+        # N_B x (N_atoms with not too large F) * 3
+        F_B = F_B.reshape((F_B.shape[0], -1))
+
+        Psi.extend(weights["F"] * F_B.T)
+        Y.extend(weights["F"] * F.reshape((-1)))
+
+    if data_keys["V"] in at.info:
+        # N_B x 3 x 3
+        V_B = np.array(virial(B, convert(ASEAtoms(at))))
+
+        # select 6 independent elements of V (standard Voigt order)
+        # note that V might come in as (9,) or (3,3), so flatten first
+        V = np.array(at.info[data_keys["V"]]).reshape((-1))
+        Vi = [0, 1, 2, 0, 1, 2]
+        Vj = [0, 1, 2, 1, 2, 0]
+        V = V[np.arange(9).reshape((3,3))[Vi, Vj]]
+
+        # N_B x 6
+        V_B = V_B[:, Vi, Vj]
+
+        Psi.extend(weights["V"] * V_B.T)
+        Y.extend(weights["V"] * V)
 
     return Psi, Y
 
-def add_lsq(B, E0s, at, data_keys, weights, Psi, Y):
-    extra_obs = np.sum([1 + len(at)*3 + 9])
-    len_B = Main.eval("length(B)")
+def assemble_lsq(B, E0s, atoms_list, data_keys, weights, Fmax):
+    Psi = []
+    Y = []
+    for at in atoms_list:
+        Psi_sec, Y_sec = lsq_section(B, E0s, at, data_keys, weights, Fmax)
+        Psi.extend(Psi_sec)
+        Y.extend(Y_sec)
 
-    row_count = np.shape(Psi)[0]
-    Psi = np.append(Psi, np.zeros((extra_obs, len_B)), axis=0)
-    Y = np.append(Y, np.zeros(extra_obs))
+    Psi = np.array(Psi)
+    Y = np.array(Y)
 
-    Psi[row_count, :] = weights["E"] * np.array(energy(B, convert(ASEAtoms(at)))).flatten() 
-    Y[row_count] = weights["E"] * (np.array(at.info[data_keys["E"]]).flatten() - np.sum([at.get_chemical_symbols().count(EL) * E0 for EL, E0 in E0s.items()]))
-    row_count += 1
+    return Psi, Y
 
-    Frows = len(at)*3
-    Psi[row_count:row_count+Frows, :] = weights["F"] * np.reshape(np.array(forces(B, convert(ASEAtoms(at)))).flatten(), (len_B, Frows)).transpose()
-    Y[row_count:row_count+Frows] = weights["F"] * np.array(at.arrays[data_keys["F"]]).flatten()
-    row_count += Frows
+def add_lsq(B, E0s, at, data_keys, weights, Fmax, Psi, Y):
+    Psi_sec, Y_sec = lsq_section(B, E0s, at, data_keys, weights, Fmax)
 
-    try:
-        Vrows = 9
-        Psi[row_count:row_count+Vrows, :] = weights["V"] * np.reshape(np.array(virial(B, convert(ASEAtoms(at)))).flatten(), (len_B, Vrows)).transpose()
-        Y[row_count:row_count+Vrows] = weights["V"] * np.array(at.info[data_keys["V"]]).flatten()
-        i += Vrows
-    except:
-        pass
+    Psi = np.append(Psi, np.array(Psi_sec), axis=0)
+    Y = np.append(Y, np.array(Y_sec))
 
     return Psi, Y
 
@@ -96,6 +111,3 @@ def fit(Psi, Y, B, E0s, solver, ncomms=32):
     IP, IPs = ace_basis.combine(B, c, E0s, comms)
     
     return IP, IPs
-
-
-

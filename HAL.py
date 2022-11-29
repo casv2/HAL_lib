@@ -57,14 +57,9 @@ def HAL(B, E0s, weights, run_info, atoms_list, data_keys, start_configs, solver,
 
             t0 = time.time()
             if m == 0:
-                Psi, Y = lsq.assemble_lsq(B, E0s, atoms_list, data_keys, weights)
+                Psi, Y = lsq.assemble_lsq(B, E0s, atoms_list, data_keys, weights, data_keys.get('Fmax'))
             else:
-                Psi, Y = lsq.add_lsq(B, E0s, at, data_keys, weights, Psi, Y)
-
-            if 'Fmax' in data_keys:
-                inds = np.where(Y >= data_keys['Fmax'])
-                Y[inds] = 0.0
-                Psi[inds,:] = np.zeros(Psi.shape[1])
+                Psi, Y = lsq.add_lsq(B, E0s, at, data_keys, weights, data_keys.get('Fmax'), Psi, Y)
 
             ACE_IP, CO_IP = lsq.fit(Psi, Y, B, E0s, solver, ncomms=ncomms)
             print("TIMING fit", time.time() - t0)
