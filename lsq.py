@@ -8,6 +8,8 @@ Main.eval("using ASE, JuLIP, ACE1")
 
 import numpy as np
 
+from ase.atoms import Atoms
+
 from julia.JuLIP import energy, forces, virial
 convert = Main.eval("julip_at(a) = JuLIP.Atoms(a)")
 ASEAtoms = Main.eval("ASEAtoms(a) = ASE.ASEAtoms(a)")
@@ -61,24 +63,25 @@ def lsq_section(B, E0s, at, data_keys, weights, Fmax=np.Infinity):
 
     return Psi, Y
 
-def assemble_lsq(B, E0s, atoms_list, data_keys, weights, Fmax):
-    Psi = []
-    Y = []
+def add_lsq(B, E0s, atoms_list, data_keys, weights, Fmax, Psi=None, Y=None):
+    if isinstance(atoms_list, Atoms):
+        atoms_list = [atoms_list]
+
+    Psi_new = []
+    Y_new = []
     for at in atoms_list:
         Psi_sec, Y_sec = lsq_section(B, E0s, at, data_keys, weights, Fmax)
-        Psi.extend(Psi_sec)
-        Y.extend(Y_sec)
+        Psi_new.extend(Psi_sec)
+        Y_new.extend(Y_sec)
 
-    Psi = np.array(Psi)
-    Y = np.array(Y)
-
-    return Psi, Y
-
-def add_lsq(B, E0s, at, data_keys, weights, Fmax, Psi, Y):
-    Psi_sec, Y_sec = lsq_section(B, E0s, at, data_keys, weights, Fmax)
-
-    Psi = np.append(Psi, np.array(Psi_sec), axis=0)
-    Y = np.append(Y, np.array(Y_sec))
+    if Psi is None:
+        assert Y is None
+        Psi = np.array(Psi_new)
+        Y = np.array(Y_new)
+    else:
+        assert Y is not None
+        Psi = np.append(Psi, np.array(Psi_new), axis=0)
+        Y = np.append(Y, np.array(Y_new))
 
     return Psi, Y
 
