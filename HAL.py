@@ -1,5 +1,7 @@
+import sys
 from copy import deepcopy
 import numpy as np
+import time
 
 from HAL_lib import lsq
 from HAL_lib import MD
@@ -7,15 +9,15 @@ from HAL_lib import MC
 from HAL_lib import utils
 from HAL_lib import errors
 
+from ase.io import write
+
 from ase.units import fs
 from ase.units import kB
 from ase.units import GPa
 
-from ase.io import write
-
 import matplotlib.pyplot as plt
 
-def HAL(B, E0s, weights, run_info, atoms_list, data_keys, start_configs, solver, calculator=None): #calculator
+def HAL(B, E0s, weights, run_info, init_atoms_list, data_keys, start_configs, solver, calculator=None): #calculator
     niters = run_info["niters"]
     ncomms = run_info["ncomms"]
     nsteps = run_info["nsteps"]
@@ -45,37 +47,61 @@ def HAL(B, E0s, weights, run_info, atoms_list, data_keys, start_configs, solver,
     if run_info["vol"] == True:
         vol_settings["vol"] = True
         vol_settings["vol_step"] = run_info["vol_step"]
-    
+
+    def add_and_fit(iter_i, new_configs, atoms_list=None, Psi=None, Y=None):
+        assert sum([atoms_list is None, Psi is None, Y is None]) in [0, 3]
+
+        # append configs
+        if atoms_list is not None:
+            atoms_list.extend(new_configs)
+        else:
+            atoms_list = list(new_configs)
+
+        # append blocks to design matrix and fitting targets
+        Psi, Y = lsq.add_lsq(B, E0s, new_configs, data_keys, weights, data_keys.get('Fmax'), Psi, Y)
+
+        np.save(f"Psi_it{iter_i}.npy", Psi)
+        np.save(f"Y_it{iter_i}.npy", Y)
+
+        t0 = time.time()
+        ACE_IP, CO_IP = lsq.fit(Psi, Y, B, E0s, solver, ncomms=ncomms)
+        print("TIMING fit", time.time() - t0)
+        t0 = time.time()
+
+        utils.save_pot(f"HAL_it{iter_i}.json")
+
+        t0 = time.time()
+        errors.print_errors(ACE_IP, atoms_list, data_keys, CO_IP, eps)
+        print("TIMING errors", time.time() - t0)
+        t0 = time.time()
+
+        return ACE_IP, CO_IP, atoms_list, Psi, Y
+
+    # initial fit
+    ACE_IP, CO_IP, atoms_list, Psi, Y = add_and_fit(0, init_atoms_list)
+
     for (j, start_config) in enumerate(start_configs):
+        print(f"HAL start_config {j}")
         for i in range(niters):
             start_config.calc = None
             current_config = deepcopy(start_config)
             m = j*niters + i
 
-            if m == 0:
-                Psi, Y = lsq.assemble_lsq(B, E0s, atoms_list, data_keys, weights)
-            else:
-                Psi, Y = lsq.add_lsq(B, E0s, at, data_keys, weights, Psi, Y)
+            t0 = time.time()
+            E_tot, E_kin, E_pot, T_s, P_s, f_s, at = run(ACE_IP, CO_IP, current_config, nsteps, dt, tau_rel, tol, eps,
+                                                         baro_settings, thermo_settings, swap_settings, vol_settings,
+                                                         tau_hist=tau_hist, softmax=softmax)
 
-            if 'Fmax' in data_keys:
-                inds = np.where(Y >= data_keys['Fmax'])
-                Y[inds] = 0.0
-                Psi[inds,:] = np.zeros(Psi.shape[1])
-
-            ACE_IP, CO_IP = lsq.fit(Psi, Y, B, E0s, solver, ncomms=ncomms)
-
-            errors.print_errors(ACE_IP, atoms_list, data_keys)
-            
-            E_tot, E_kin, E_pot, T_s, P_s, f_s, at = run(ACE_IP, CO_IP, current_config, nsteps, dt, tau_rel, tol, eps, baro_settings, thermo_settings, swap_settings, vol_settings, tau_hist=tau_hist, softmax=softmax)
+            print("TIMING run", time.time() - t0)
+            t0 = time.time()
 
             plot(E_tot, E_kin, E_pot, T_s, P_s, f_s, tol, m)
-            utils.save_pot("HAL_it{}.json".format(m))
 
             del at.arrays["momenta"]
             del at.arrays["HAL_forces"]
 
             if calculator != None:
-                at.set_calculator(calculator)
+                at.calc = calculator
                 at.info[data_keys["E"]] = at.get_potential_energy()
                 at.arrays[data_keys["F"]] = at.get_forces()
                 try:
@@ -83,12 +109,15 @@ def HAL(B, E0s, weights, run_info, atoms_list, data_keys, start_configs, solver,
                 except:
                     pass
 
+            print("TIMING reference calculation", time.time() - t0)
+            t0 = time.time()
+
             at.info["config_type"] = "HAL_" + at.info["config_type"]
 
-            write("HAL_it{}.extxyz".format(m), at)
+            write(f"HAL_it{m}.extxyz", at)
 
-            atoms_list.append(at)
-    
+            ACE_IP, CO_IP, atoms_list, Psi, Y = add_and_fit(m+1, [at], atoms_list, Psi, Y)
+
     return atoms_list
 
 def softmax_func(x):
@@ -143,13 +172,18 @@ def run(ACE_IP, CO_IP, at, nsteps, dt, tau_rel, tol, eps, baro_settings, thermo_
             f_s[i] = np.max(softmax_func(p))
         else:
             f_s[i] = np.max(p)
-    
-        if i > nsteps or f_s[i] > tol:
+
+        if f_s[i] > tol:
+            at.info["HAL_trigger"] = f"force_tol_{f_s[i]}_iter_{i}"
             running=False
 
-        print("HAL iteration: {}, tau: {}, max f_i {}".format(i, tau, f_s[i]))
+        print(f"HAL iteration: {i}, tau: {tau}, max f_i {f_s[i]}")
+        sys.stdout.flush()
 
         i += 1
+
+    if "HAL_trigger" not in at.info:
+        at.info["HAL_trigger"] = f"finished_iter_{i}"
 
     return E_tot[:i], E_kin[:i], E_pot[:i], T_s[:i], P_s[:i], f_s[:i], at
 
@@ -171,6 +205,6 @@ def plot(E_tot, E_kin, E_pot, T_s, P_s, f_s, tol, m):
     axes[0].legend(loc="upper left")
     axes[3].legend(loc="upper left")
     plt.tight_layout()
-    plt.savefig("./plot_{}.pdf".format(m))
+    plt.savefig(f"plot_{m}.pdf")
 
-    
+
