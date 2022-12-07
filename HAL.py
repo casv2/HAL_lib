@@ -17,7 +17,7 @@ from ase.units import GPa
 
 import matplotlib.pyplot as plt
 
-def add_and_fit(B, E0s, data_keys, weights, solver, ncomms, eps, iter_i, new_configs, atoms_list=None, Psi=None, Y=None, mvn_hermitian=True, save=False):
+def add_and_fit(B, E0s, data_keys, weights, solver, ncomms, eps, iter_i, new_configs, atoms_list=None, Psi=None, Y=None, mvn_hermitian=True, save=True):
     assert sum([atoms_list is None, Psi is None, Y is None]) in [0, 3]
 
     # append configs
@@ -83,7 +83,7 @@ def HAL(B, E0s, weights, run_info, init_atoms_list, data_keys, start_configs, so
 
 
     # initial fit
-    ACE_IP, CO_IP, atoms_list, Psi, Y = add_and_fit(B, E0s, data_keys, weights, solver, ncomms, eps, 0, init_atoms_list)
+    ACE_IP, CO_IP, atoms_list, Psi, Y = add_and_fit(B, E0s, data_keys, weights, solver, ncomms, eps, 0, init_atoms_list, save=save)
 
     for (j, start_config) in enumerate(start_configs):
         print(f"HAL start_config {j}")

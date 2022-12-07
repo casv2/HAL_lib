@@ -15,7 +15,7 @@ from julia.JuLIP import energy, forces, virial
 convert = Main.eval("julip_at(a) = JuLIP.Atoms(a)")
 ASEAtoms = Main.eval("ASEAtoms(a) = ASE.ASEAtoms(a)")
 
-def lsq_section(B, E0s, at, data_keys, weights, Fmax=np.Infinity):
+def lsq_section(B, E0s, at, data_keys, weights, Fmax=1e32):
     Psi = []
     Y = []
 

@@ -2,6 +2,7 @@
 #     https://github.com/numpy/numpy/blob/8d61ebc25a117337d148f1e3d96066653bd6419a/numpy/random/mtrand.pyx#L4041
 # but adding hermitian=True to svd call
 import numpy as np
+import warnings
 
 def multivariate_normal(mean, cov, size=None, check_valid='warn', tol=1e-8):
     """
