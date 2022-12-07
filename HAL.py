@@ -17,7 +17,7 @@ from ase.units import GPa
 
 import matplotlib.pyplot as plt
 
-def add_and_fit(B, E0s, data_keys, weights, solver, ncomms, eps, iter_i, new_configs, atoms_list=None, Psi=None, Y=None, mvn_hermitian=True):
+def add_and_fit(B, E0s, data_keys, weights, solver, ncomms, eps, iter_i, new_configs, atoms_list=None, Psi=None, Y=None, mvn_hermitian=True, save=False):
     assert sum([atoms_list is None, Psi is None, Y is None]) in [0, 3]
 
     # append configs
@@ -30,8 +30,9 @@ def add_and_fit(B, E0s, data_keys, weights, solver, ncomms, eps, iter_i, new_con
     if len(new_configs) > 0:
         Psi, Y = lsq.add_lsq(B, E0s, new_configs, data_keys, weights, data_keys.get('Fmax'), Psi, Y)
 
-    np.save(f"Psi_it{iter_i}.npy", Psi)
-    np.save(f"Y_it{iter_i}.npy", Y)
+    if save:
+        np.save(f"Psi_it{iter_i}.npy", Psi)
+        np.save(f"Y_it{iter_i}.npy", Y)
 
     t0 = time.time()
     ACE_IP, CO_IP = lsq.fit(Psi, Y, B, E0s, solver, ncomms=ncomms, mvn_hermitian=mvn_hermitian)
@@ -49,7 +50,7 @@ def add_and_fit(B, E0s, data_keys, weights, solver, ncomms, eps, iter_i, new_con
 
     return ACE_IP, CO_IP, atoms_list, Psi, Y
 
-def HAL(B, E0s, weights, run_info, init_atoms_list, data_keys, start_configs, solver, calculator=None): #calculator
+def HAL(B, E0s, weights, run_info, init_atoms_list, data_keys, start_configs, solver, calculator=None, save=False): #calculator
     niters = run_info["niters"]
     ncomms = run_info["ncomms"]
     nsteps = run_info["nsteps"]
