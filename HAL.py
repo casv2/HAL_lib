@@ -17,6 +17,38 @@ from ase.units import GPa
 
 import matplotlib.pyplot as plt
 
+def add_and_fit(B, E0s, data_keys, weights, solver, ncomms, eps, iter_i, new_configs, atoms_list=None, Psi=None, Y=None, mvn_hermitian=True):
+    assert sum([atoms_list is None, Psi is None, Y is None]) in [0, 3]
+
+    # append configs
+    if atoms_list is not None:
+        atoms_list.extend(new_configs)
+    else:
+        atoms_list = list(new_configs)
+
+    # append blocks to design matrix and fitting targets
+    if len(new_configs) > 0:
+        Psi, Y = lsq.add_lsq(B, E0s, new_configs, data_keys, weights, data_keys.get('Fmax'), Psi, Y)
+
+    np.save(f"Psi_it{iter_i}.npy", Psi)
+    np.save(f"Y_it{iter_i}.npy", Y)
+
+    t0 = time.time()
+    ACE_IP, CO_IP = lsq.fit(Psi, Y, B, E0s, solver, ncomms=ncomms, mvn_hermitian=mvn_hermitian)
+    print("TIMING fit", time.time() - t0)
+    t0 = time.time()
+
+    utils.save_pot(f"HAL_it{iter_i}.json")
+
+    t0 = time.time()
+    errors.print_errors(ACE_IP, atoms_list, data_keys, CO_IP, eps)
+    print("TIMING errors", time.time() - t0)
+    t0 = time.time()
+
+    sys.stdout.flush()
+
+    return ACE_IP, CO_IP, atoms_list, Psi, Y
+
 def HAL(B, E0s, weights, run_info, init_atoms_list, data_keys, start_configs, solver, calculator=None): #calculator
     niters = run_info["niters"]
     ncomms = run_info["ncomms"]
@@ -48,37 +80,9 @@ def HAL(B, E0s, weights, run_info, init_atoms_list, data_keys, start_configs, so
         vol_settings["vol"] = True
         vol_settings["vol_step"] = run_info["vol_step"]
 
-    def add_and_fit(iter_i, new_configs, atoms_list=None, Psi=None, Y=None):
-        assert sum([atoms_list is None, Psi is None, Y is None]) in [0, 3]
-
-        # append configs
-        if atoms_list is not None:
-            atoms_list.extend(new_configs)
-        else:
-            atoms_list = list(new_configs)
-
-        # append blocks to design matrix and fitting targets
-        Psi, Y = lsq.add_lsq(B, E0s, new_configs, data_keys, weights, data_keys.get('Fmax'), Psi, Y)
-
-        np.save(f"Psi_it{iter_i}.npy", Psi)
-        np.save(f"Y_it{iter_i}.npy", Y)
-
-        t0 = time.time()
-        ACE_IP, CO_IP = lsq.fit(Psi, Y, B, E0s, solver, ncomms=ncomms)
-        print("TIMING fit", time.time() - t0)
-        t0 = time.time()
-
-        utils.save_pot(f"HAL_it{iter_i}.json")
-
-        t0 = time.time()
-        errors.print_errors(ACE_IP, atoms_list, data_keys, CO_IP, eps)
-        print("TIMING errors", time.time() - t0)
-        t0 = time.time()
-
-        return ACE_IP, CO_IP, atoms_list, Psi, Y
 
     # initial fit
-    ACE_IP, CO_IP, atoms_list, Psi, Y = add_and_fit(0, init_atoms_list)
+    ACE_IP, CO_IP, atoms_list, Psi, Y = add_and_fit(B, E0s, data_keys, weights, solver, ncomms, eps, 0, init_atoms_list)
 
     for (j, start_config) in enumerate(start_configs):
         print(f"HAL start_config {j}")
@@ -116,7 +120,7 @@ def HAL(B, E0s, weights, run_info, init_atoms_list, data_keys, start_configs, so
 
             write(f"HAL_it{m}.extxyz", at)
 
-            ACE_IP, CO_IP, atoms_list, Psi, Y = add_and_fit(m+1, [at], atoms_list, Psi, Y)
+            ACE_IP, CO_IP, atoms_list, Psi, Y = add_and_fit(B, E0s, data_keys, weights, solver, ncomms, eps, m+1, [at], atoms_list, Psi, Y)
 
     return atoms_list
 

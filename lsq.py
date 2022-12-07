@@ -7,6 +7,7 @@ from HAL_lib import ace_basis
 Main.eval("using ASE, JuLIP, ACE1")
 
 import numpy as np
+from .multivariate_normal import multivariate_normal as multivariate_normal_hermitian
 
 from ase.atoms import Atoms
 
@@ -85,7 +86,7 @@ def add_lsq(B, E0s, atoms_list, data_keys, weights, Fmax, Psi=None, Y=None):
 
     return Psi, Y
 
-def fit(Psi, Y, B, E0s, solver, ncomms=32):
+def fit(Psi, Y, B, E0s, solver, ncomms=32, mvn_hermitian=True):
     solver.fit(Psi, Y)
     c = solver.coef_
     sigma = solver.sigma_
@@ -109,7 +110,10 @@ def fit(Psi, Y, B, E0s, solver, ncomms=32):
 
     print("sigma min eigval: {}, sigma_reg min eigval: {}, score: {}".format(sigma_min_eig_val, sigma_reg_min_eig_val, score))
 
-    comms = np.random.multivariate_normal(c, sigma_reg, size=ncomms)
+    if mvn_hermitian:
+        comms = multivariate_normal_hermitian(c, sigma_reg, size=ncomms)
+    else:
+        comms = np.random.multivariate_normal(c, sigma_reg, size=ncomms)
     
     IP, IPs = ace_basis.combine(B, c, E0s, comms)
     
