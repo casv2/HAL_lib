@@ -121,7 +121,7 @@ def HAL(B, E0s, weights, run_info, init_atoms_list, data_keys, start_configs, so
 
             write(f"HAL_it{m}.extxyz", at)
 
-            ACE_IP, CO_IP, atoms_list, Psi, Y = add_and_fit(B, E0s, data_keys, weights, solver, ncomms, eps, m+1, [at], atoms_list, Psi, Y)
+            ACE_IP, CO_IP, atoms_list, Psi, Y = add_and_fit(B, E0s, data_keys, weights, solver, ncomms, eps, m+1, [at], atoms_list, Psi, Y, save=save)
 
     return atoms_list
 
