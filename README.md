@@ -11,6 +11,7 @@ This package builds ACE interatomic potentials using Hyperactive Learning (HAL) 
 ```using Pkg; pkg"registry add https://github.com/JuliaRegistries/General"; pkg"registry add https://github.com/JuliaMolSim/MolSim.git"; pkg"add ACE1, ASE, JuLIP, LinearAlgebra"```
 
    make sure you have ACE1 version > 0.10.3 (!)
+   
 3. install `julia` python package to set up Python -> Julia connection 
 
 ```python -m pip install julia```
