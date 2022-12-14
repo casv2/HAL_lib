@@ -94,7 +94,7 @@ def HAL(B, E0s, weights, run_info, init_atoms_list, data_keys, start_configs, so
 
             t0 = time.time()
             E_tot, E_kin, E_pot, T_s, P_s, f_s, at = run(ACE_IP, CO_IP, current_config, nsteps, dt, tau_rel, tol, eps,
-                                                         baro_settings, thermo_settings, swap_settings, vol_settings,
+                                                         baro_settings, thermo_settings, swap_settings, vol_settings, m,
                                                          tau_hist=tau_hist, softmax=softmax)
 
             print("TIMING run", time.time() - t0)
@@ -129,7 +129,7 @@ def softmax_func(x):
     e_x = np.exp(x - np.max(x))
     return e_x / e_x.sum()
 
-def run(ACE_IP, CO_IP, at, nsteps, dt, tau_rel, tol, eps, baro_settings, thermo_settings, swap_settings, vol_settings, tau_hist=100, softmax=True):
+def run(ACE_IP, CO_IP, at, nsteps, dt, tau_rel, tol, eps, baro_settings, thermo_settings, swap_settings, vol_settings, m, tau_hist=100, softmax=True):
     E_tot = np.zeros(nsteps)
     E_pot = np.zeros(nsteps)
     E_kin = np.zeros(nsteps)
@@ -147,8 +147,12 @@ def run(ACE_IP, CO_IP, at, nsteps, dt, tau_rel, tol, eps, baro_settings, thermo_
     i=0
 
     tau=0.0
+
+    al = []
     while running and i < nsteps:
         at, F_bar_norms, F_bias_norms, dFn = MD.VelocityVerlet(ACE_IP, CO_IP, at, dt * fs, tau, baro_settings=baro_settings, thermo_settings=thermo_settings)
+        at.calc = None
+        al.append(deepcopy(at))
 
         m_F_bar[i] = np.mean(F_bar_norms)
         m_F_bias[i] = np.mean(F_bias_norms)
@@ -189,6 +193,8 @@ def run(ACE_IP, CO_IP, at, nsteps, dt, tau_rel, tol, eps, baro_settings, thermo_
 
     if "HAL_trigger" not in at.info:
         at.info["HAL_trigger"] = f"finished_iter_{i}"
+
+    write(f"traj_{m}.extxyz", al)
 
     return E_tot[:i], E_kin[:i], E_pot[:i], T_s[:i], P_s[:i], f_s[:i], at
 
