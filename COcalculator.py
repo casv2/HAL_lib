@@ -10,15 +10,11 @@ Main.eval("""
 using LinearAlgebra
 
 function get_com_energies(CO_IP, at)
-    GC.gc()
-    
     E_bar, E_comms = ACE1.co_energy(CO_IP, at)
     return E_bar, E_comms
 end
 
 function get_force_data(CO_IP, at)
-    GC.gc()
-    
     E_bar, E_comms = ACE1.co_energy(CO_IP, at)
     F_bar, F_comms = ACE1.co_forces(CO_IP, at)
 
