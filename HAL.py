@@ -8,6 +8,8 @@ from HAL_lib import MD
 from HAL_lib import MC
 from HAL_lib import utils
 from HAL_lib import errors
+from HAL_lib import BO_optim
+from HAL_lib import ace_basis
 
 from ase.io import write
 
@@ -18,7 +20,7 @@ from ase.units import GPa
 import matplotlib.pyplot as plt
 
 def add_and_fit(B, E0s, data_keys, weights, solver, ncomms, eps, iter_i, new_configs, atoms_list=None, Psi=None, Y=None, mvn_hermitian=True, save=True):
-    assert sum([atoms_list is None, Psi is None, Y is None]) in [0, 3]
+    #assert sum([atoms_list is None, Psi is None, Y is None]) in [0, 3]
 
     # append configs
     if atoms_list is not None:
@@ -50,7 +52,7 @@ def add_and_fit(B, E0s, data_keys, weights, solver, ncomms, eps, iter_i, new_con
 
     return ACE_IP, CO_IP, atoms_list, Psi, Y
 
-def HAL(B, E0s, weights, run_info, init_atoms_list, data_keys, start_configs, solver, calculator=None, save=False): #calculator
+def HAL(optim_basis_param, E0s, weights, run_info, init_atoms_list, data_keys, start_configs, solver, calculator=None, save=False): #calculator
     niters = run_info["niters"]
     ncomms = run_info["ncomms"]
     nsteps = run_info["nsteps"]
@@ -81,6 +83,8 @@ def HAL(B, E0s, weights, run_info, init_atoms_list, data_keys, start_configs, so
         vol_settings["vol"] = True
         vol_settings["vol_step"] = run_info["vol_step"]
 
+    D = BO_optim.BO_basis_optim(optim_basis_param, solver, init_atoms_list, E0s, data_keys, weights)
+    B = ace_basis.full_basis(D) 
 
     # initial fit
     ACE_IP, CO_IP, atoms_list, Psi, Y = add_and_fit(B, E0s, data_keys, weights, solver, ncomms, eps, 0, init_atoms_list, save=save)
@@ -121,7 +125,12 @@ def HAL(B, E0s, weights, run_info, init_atoms_list, data_keys, start_configs, so
 
             write(f"HAL_it{m}.extxyz", at)
 
-            ACE_IP, CO_IP, atoms_list, Psi, Y = add_and_fit(B, E0s, data_keys, weights, solver, ncomms, eps, m+1, [at], atoms_list, Psi, Y, save=save)
+            if m % optim_basis_param["n_optim"] == 0 and m > 1:
+                D = BO_optim.BO_basis_optim(optim_basis_param, solver, atoms_list, E0s, data_keys, weights)
+                B = ace_basis.full_basis(D) 
+                ACE_IP, CO_IP, atoms_list, Psi, Y = add_and_fit(B, E0s, data_keys, weights, solver, ncomms, eps, m+1, [at], atoms_list, save=save)
+            else:
+                ACE_IP, CO_IP, atoms_list, Psi, Y = add_and_fit(B, E0s, data_keys, weights, solver, ncomms, eps, m+1, [at], atoms_list, Psi, Y, save=save)
 
     return atoms_list
 
