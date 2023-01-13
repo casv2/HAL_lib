@@ -28,6 +28,8 @@ def add_and_fit(B, E0s, data_keys, weights, solver, ncomms, eps, iter_i, new_con
     else:
         atoms_list = list(new_configs)
 
+    print("len atoms_list {}".format(len(atoms_list)))
+
     # append blocks to design matrix and fitting targets
     if len(new_configs) > 0:
         Psi, Y = lsq.add_lsq(B, E0s, new_configs, data_keys, weights, data_keys.get('Fmax'), Psi, Y)
@@ -51,6 +53,29 @@ def add_and_fit(B, E0s, data_keys, weights, solver, ncomms, eps, iter_i, new_con
     sys.stdout.flush()
 
     return ACE_IP, CO_IP, atoms_list, Psi, Y
+
+def quick_fit(B, E0s, data_keys, weights, solver, ncomms, eps, iter_i, atoms_list, mvn_hermitian=True, save=True):
+    Psi, Y = lsq.add_lsq(B, E0s, atoms_list, data_keys, weights, data_keys.get('Fmax'))
+
+    if save:
+        np.save(f"Psi_it{iter_i}.npy", Psi)
+        np.save(f"Y_it{iter_i}.npy", Y)
+
+    t0 = time.time()
+    ACE_IP, CO_IP = lsq.fit(Psi, Y, B, E0s, solver, ncomms=ncomms, mvn_hermitian=mvn_hermitian)
+    print("TIMING fit", time.time() - t0)
+    t0 = time.time()
+
+    utils.save_pot(f"HAL_it{iter_i}.json")
+
+    t0 = time.time()
+    errors.print_errors(ACE_IP, atoms_list, data_keys, CO_IP, eps)
+    print("TIMING errors", time.time() - t0)
+    t0 = time.time()
+
+    sys.stdout.flush()
+
+    return ACE_IP, CO_IP, atoms_list
 
 def HAL(optim_basis_param, E0s, weights, run_info, init_atoms_list, data_keys, start_configs, solver, calculator=None, save=False): #calculator
     niters = run_info["niters"]
@@ -125,12 +150,17 @@ def HAL(optim_basis_param, E0s, weights, run_info, init_atoms_list, data_keys, s
 
             write(f"HAL_it{m}.extxyz", at)
 
-            if m % optim_basis_param["n_optim"] == 0 and m > 0:
-                D = BO_optim.BO_basis_optim(optim_basis_param, solver, atoms_list, E0s, data_keys, weights)
+            atoms_list += [at]
+
+            #print("len D max B {}".format(len(D_max_B)))
+
+            if m % optim_basis_param["n_optim"] == 0 and m>0:
+                D = BO_optim.BO_basis_optim(optim_basis_param, solver, atoms_list, E0s, data_keys, weights, D_prior=D)
                 B = ace_basis.full_basis(D) 
-                ACE_IP, CO_IP, atoms_list, Psi, Y = add_and_fit(B, E0s, data_keys, weights, solver, ncomms, eps, m+1, [at], atoms_list, save=save)
+                ACE_IP, CO_IP, atoms_list = quick_fit(B, E0s, data_keys, weights, solver, ncomms, eps, m+1, atoms_list, save=save)
             else:
-                ACE_IP, CO_IP, atoms_list, Psi, Y = add_and_fit(B, E0s, data_keys, weights, solver, ncomms, eps, m+1, [at], atoms_list, Psi, Y, save=save)
+                ACE_IP, CO_IP, atoms_list = quick_fit(B, E0s, data_keys, weights, solver, ncomms, eps, m+1, atoms_list, save=save)
+            #    ACE_IP, CO_IP, atoms_list, Psi, Y = add_and_fit(B, E0s, data_keys, weights, solver, ncomms, eps, m+1, [at], atoms_list, Psi, Y, save=save)
 
     return atoms_list
 

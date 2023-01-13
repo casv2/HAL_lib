@@ -2,11 +2,12 @@ import optuna
 from optuna.samplers import TPESampler
 import timeout_decorator
 from timeout_decorator.timeout_decorator import TimeoutError
+from optuna.trial._state import TrialState
 
 from HAL_lib import lsq
 from HAL_lib import ace_basis
 
-def BO_basis_optim(optim_basis_param, solver, atoms_list, E0s, data_keys, weights):
+def BO_basis_optim(optim_basis_param, solver, atoms_list, E0s, data_keys, weights, D_prior=None):#, D_max_B=None):
     elements = optim_basis_param["elements"]
     max_len_B = optim_basis_param["max_len_B"]
 
@@ -63,7 +64,7 @@ def BO_basis_optim(optim_basis_param, solver, atoms_list, E0s, data_keys, weight
         # "p_trans" : p_trans,
         # "p_env" : p_env }               # ACE outer cutoff (4.5-5.5 is default) (pair outer cutoff = ACE cutoff + 1.0 Å)
 
-        print(basis_info)
+        #print(basis_info)
 
         B, len_B = ace_basis.full_basis(basis_info, return_length=True) 
 
@@ -78,9 +79,20 @@ def BO_basis_optim(optim_basis_param, solver, atoms_list, E0s, data_keys, weight
             return -1e32
 
     study = optuna.create_study(sampler=TPESampler(), direction='maximize')
+    if D_prior is not None:
+        study.enqueue_trial(D_prior)
+
+    # if D_max_B is not None:
+    #     study.tell(D_max_B)
+    
     study.optimize(objective, n_trials=optim_basis_param["n_trials"], catch=(TimeoutError,))#, show_progress_bar=True)
 
     D = study.best_params
     D["elements"] = elements
 
-    return D
+    #D_max_B = [ study.trials[i] for i in range(len(study.trials)) if study.trials[i].value == -1e32 or study.trials[i].state == TrialState.FAIL ]
+
+    print("BEST BASIS, DB size: {}, VALUE: {}, STUDYSIZE: {}".format(len(atoms_list), study.best_value, len(study.trials)))
+    print(D)
+
+    return D#, D_max_B
