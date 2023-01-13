@@ -40,8 +40,8 @@ def BO_basis_optim(optim_basis_param, solver, atoms_list, E0s, data_keys, weight
         cor_order = trial.suggest_int('cor_order', low=2, high=3, step=1)
         poly_deg_pair = trial.suggest_int('poly_deg_pair', low=4, high=20, step=1)
         Dd_deg = trial.suggest_int('Dd_deg', low=4, high=20, step=1)
-        Dn_w = trial.suggest_float('Dn_w', low=0.5, high=2.0, step=0.1)
-        Dl_w = trial.suggest_float('Dl_w', low=0.5, high=2.0, step=0.1)
+        Dn_w = trial.suggest_float('Dn_w', low=0.8, high=1.5, step=0.1)
+        Dl_w = trial.suggest_float('Dl_w', low=0.8, high=1.5, step=0.1)
         r_0 = trial.suggest_float('r_0', low=1.0, high=3.0, step=0.1)
         r_in = trial.suggest_float('r_in', low=1.0, high=3.0, step=0.1)
         r_cut_ACE = trial.suggest_float('r_cut_ACE', low=4.5, high=6.0, step=0.1)
@@ -62,6 +62,8 @@ def BO_basis_optim(optim_basis_param, solver, atoms_list, E0s, data_keys, weight
         "r_cut_pair" : r_cut_pair,
         "p_trans" : p_trans,
         "p_env" : p_env }               # ACE outer cutoff (4.5-5.5 is default) (pair outer cutoff = ACE cutoff + 1.0 Å)
+
+        print(basis_info)
 
         B, len_B = ace_basis.full_basis(basis_info, return_length=True) 
 
