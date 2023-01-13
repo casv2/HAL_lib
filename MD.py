@@ -23,7 +23,12 @@ def VelocityVerlet(ACE_IP, CO_IP, at, dt, tau, baro_settings, thermo_settings):
         forces = at.arrays["HAL_forces"]
     else:
         F_bar, F_bias, F_bar_norms, F_bias_norms, dFn  = CO_IP.get_property('force_data',  at) 
-        forces = np.asarray(F_bar) - tau * np.asarray(F_bias)
+        #print("==")
+        #print(np.array(F_bar))
+        #print("==")
+        #print(np.array(F_bias))
+        print(np.vstack(F_bar))
+        forces = np.vstack(F_bar) - tau * np.vstack(F_bias)
 
     p = at.get_momenta() + 0.5 * dt * forces
     masses = at.get_masses()[:, np.newaxis]
@@ -36,7 +41,8 @@ def VelocityVerlet(ACE_IP, CO_IP, at, dt, tau, baro_settings, thermo_settings):
     at.set_positions(r + dt * p / masses)
 
     F_bar, F_bias, F_bar_norms, F_bias_norms, dFn  = CO_IP.get_property('force_data',  at) 
-    forces = np.asarray(F_bar) - tau * np.asarray(F_bias)
+    #forces = np.array(F_bar) - tau * np.array(F_bias)
+    forces = np.vstack(F_bar) - tau * np.vstack(F_bias)
     at.arrays["HAL_forces"] = forces
 
     p = at.get_momenta() + 0.5 * dt * forces

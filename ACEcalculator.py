@@ -36,7 +36,7 @@ class ACECalculator(Calculator):
             self.results['energy'] = E
             self.results['free_energy'] = E
         if 'forces' in properties:
-            self.results['forces'] = np.asarray(forces(self.julip_calculator, julia_atoms))
+            self.results['forces'] = np.array(forces(self.julip_calculator, julia_atoms))
         if 'stress' in properties:
-            voigt_stress = full_3x3_to_voigt_6_stress(np.asarray(stress(self.julip_calculator, julia_atoms)))
+            voigt_stress = full_3x3_to_voigt_6_stress(np.array(stress(self.julip_calculator, julia_atoms)))
             self.results['stress'] = voigt_stress
