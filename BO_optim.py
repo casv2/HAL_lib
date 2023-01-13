@@ -10,7 +10,7 @@ def BO_basis_optim(optim_basis_param, solver, atoms_list, E0s, data_keys, weight
     elements = optim_basis_param["elements"]
     max_len_B = optim_basis_param["max_len_B"]
 
-    @timeout_decorator.timeout(10, use_signals=True)   
+    @timeout_decorator.timeout(optim_basis_param["timeout"], use_signals=True)   
 
     def objective(trial, max_len_B=max_len_B):
         """return the f1-score"""

@@ -125,7 +125,7 @@ def HAL(optim_basis_param, E0s, weights, run_info, init_atoms_list, data_keys, s
 
             write(f"HAL_it{m}.extxyz", at)
 
-            if m % optim_basis_param["n_optim"] == 0 and m > 1:
+            if m % optim_basis_param["n_optim"] == 0 and m > 0:
                 D = BO_optim.BO_basis_optim(optim_basis_param, solver, atoms_list, E0s, data_keys, weights)
                 B = ace_basis.full_basis(D) 
                 ACE_IP, CO_IP, atoms_list, Psi, Y = add_and_fit(B, E0s, data_keys, weights, solver, ncomms, eps, m+1, [at], atoms_list, save=save)
