@@ -17,8 +17,8 @@ def BO_basis_optim(optim_basis_param, solver, atoms_list, E0s, data_keys, weight
         """return the f1-score"""
 
         cor_order = trial.suggest_int('cor_order', low=2, high=4, step=1)
-        poly_deg_ACE = trial.suggest_int('poly_deg_ACE', low=4, high=16, step=1)
-        poly_deg_pair = trial.suggest_int('poly_deg_pair', low=4, high=16, step=1)
+        poly_deg_ACE = trial.suggest_int('poly_deg_ACE', low=7, high=16, step=1)
+        poly_deg_pair = trial.suggest_int('poly_deg_pair', low=7, high=16, step=1)
         r_0 = trial.suggest_float('r_0', low=1.0, high=3.0, step=0.1)
         r_in = trial.suggest_float('r_in', low=1.0, high=3.0, step=0.1)
         r_cut_ACE = trial.suggest_float('r_cut_ACE', low=4.5, high=6.0, step=0.1)

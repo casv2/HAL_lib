@@ -197,10 +197,10 @@ def run(ACE_IP, CO_IP, at, nsteps, dt, tau_rel, tol, eps, baro_settings, thermo_
         else:
             tau = 0.0
 
-        if (vol_settings["vol"] == True) and (i % vol_settings["vol_step"] == 0):
+        if (vol_settings["vol"] == True) and (i % vol_settings["vol_step"] == 0) and i > 0:
             at = MC.MC_vol_step(CO_IP, at, tau, thermo_settings["T"] * kB)
 
-        if (swap_settings["swap"] == True) and (i % swap_settings["swap_step"] == 0):
+        if (swap_settings["swap"] == True) and (i % swap_settings["swap_step"] == 0) and i > 0:
             at = MC.MC_swap_step(CO_IP, at, tau, thermo_settings["T"] * kB)
 
         at.set_calculator(ACE_IP)
