@@ -16,8 +16,8 @@ def full_basis(basis_info, return_length=False):
     Main.r_in = basis_info["r_in"]
     Main.r_cut_ACE = basis_info["r_cut_ACE"]
     Main.r_cut_pair = basis_info["r_cut_pair"]
-    Main.p_trans = basis_info["p_trans"]
-    Main.p_env = basis_info["p_env"]
+    #Main.p_trans = basis_info["p_trans"]
+    #Main.p_env = basis_info["p_env"]
     
     #Main.Dd_deg = basis_info["Dd_deg"]
     #Main.Dn_w = basis_info["Dn_w"]

@@ -23,8 +23,8 @@ def BO_basis_optim(optim_basis_param, solver, atoms_list, E0s, data_keys, weight
         r_in = trial.suggest_float('r_in', low=1.0, high=3.0, step=0.1)
         r_cut_ACE = trial.suggest_float('r_cut_ACE', low=4.5, high=6.0, step=0.1)
         r_cut_pair = trial.suggest_float('r_cut_pair', low=6.0, high=8.0, step=0.1)
-        p_trans = trial.suggest_int('p_trans', low=1, high=3, step=1)
-        p_env = trial.suggest_int('p_env', low=1, high=3, step=1)
+        #p_trans = trial.suggest_int('p_trans', low=1, high=3, step=1)
+        #p_env = trial.suggest_int('p_env', low=1, high=3, step=1)
 
         basis_info = {
         "elements" : elements,    # elements in ACE basis
@@ -34,9 +34,9 @@ def BO_basis_optim(optim_basis_param, solver, atoms_list, E0s, data_keys, weight
         "r_0" : r_0,                  # typical nearest neighbour distance
         "r_in" : r_in,                 # ACE inner cutoff (0.5 is default)
         "r_cut_ACE" : r_cut_ACE,
-        "r_cut_pair" : r_cut_pair,
-        "p_trans" : p_trans,
-        "p_env" : p_env, }               # ACE outer cutoff (4.5-5.5 is default) (pair outer cutoff = ACE cutoff + 1.0 Å)
+        "r_cut_pair" : r_cut_pair}
+        #"p_trans" : p_trans,
+        #"p_env" : p_env, }               # ACE outer cutoff (4.5-5.5 is default) (pair outer cutoff = ACE cutoff + 1.0 Å)
 
         # cor_order = trial.suggest_int('cor_order', low=2, high=3, step=1)
         # poly_deg_pair = trial.suggest_int('poly_deg_pair', low=4, high=14, step=1)
