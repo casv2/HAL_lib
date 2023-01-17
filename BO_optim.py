@@ -48,7 +48,7 @@ def BO_basis_optim(optim_basis_param, solver, atoms_list, E0s, data_keys, weight
         r_cut_pair = trial.suggest_float('r_cut_pair', low=6.0, high=8.0, step=0.1)
         r_cut_ACE = trial.suggest_float('r_cut_ACE', low=4.5, high=6.0, step=0.1)
         
-        Dn_w = trial.suggest_float('Dn_w', low=1.0, high=1.5, step=0.1)
+        Dn_w = trial.suggest_float('Dn_w', low=1.0, high=1.0, step=0.1)
         Dl_w = trial.suggest_float('Dl_w', low=1.0, high=1.5, step=0.1)
         
         Dd_deg = trial.suggest_int('Dd_deg', low=4, high=14, step=1)
