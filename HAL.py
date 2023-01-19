@@ -113,6 +113,7 @@ def HAL(optim_basis_param, E0s, weights, run_info, init_atoms_list, data_keys, s
 
     # initial fit
     ACE_IP, CO_IP, atoms_list, Psi, Y = add_and_fit(B, E0s, data_keys, weights, solver, ncomms, eps, 0, init_atoms_list, save=save)
+    utils.plot_dimer(ACE_IP, optim_basis_param["elements"], E0s, m=0)
 
     for (j, start_config) in enumerate(start_configs):
         print(f"HAL start_config {j}")
@@ -147,12 +148,8 @@ def HAL(optim_basis_param, E0s, weights, run_info, init_atoms_list, data_keys, s
             t0 = time.time()
 
             at.info["config_type"] = "HAL_" + at.info["config_type"]
-
             write(f"HAL_it{m}.extxyz", at)
-
             atoms_list += [at]
-
-            #print("len D max B {}".format(len(D_max_B)))
 
             if m % optim_basis_param["n_optim"] == 0 and m>0:
                 D = BO_optim.BO_basis_optim(optim_basis_param, solver, atoms_list, E0s, data_keys, weights, D_prior=D)
@@ -160,6 +157,8 @@ def HAL(optim_basis_param, E0s, weights, run_info, init_atoms_list, data_keys, s
                 ACE_IP, CO_IP, atoms_list = quick_fit(B, E0s, data_keys, weights, solver, ncomms, eps, m+1, atoms_list, save=save)
             else:
                 ACE_IP, CO_IP, atoms_list = quick_fit(B, E0s, data_keys, weights, solver, ncomms, eps, m+1, atoms_list, save=save)
+            
+            utils.plot_dimer(ACE_IP, optim_basis_param["elements"], E0s, m=m+1)
             #    ACE_IP, CO_IP, atoms_list, Psi, Y = add_and_fit(B, E0s, data_keys, weights, solver, ncomms, eps, m+1, [at], atoms_list, Psi, Y, save=save)
 
     return atoms_list
