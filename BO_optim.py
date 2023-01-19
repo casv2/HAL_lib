@@ -42,20 +42,20 @@ def BO_basis_optim(optim_basis_param, solver, atoms_list, E0s, data_keys, weight
         
         cor_order = trial.suggest_int('cor_order', low=2, high=3, step=1)
         poly_deg_pair = trial.suggest_int('poly_deg_pair', low=4, high=14, step=1)
-        Dl_w = trial.suggest_float('Dl_w', low=1.0, high=1.5, step=0.1)
-        r_0 = trial.suggest_float('r_0', low=1.0, high=3.0, step=0.1)
-        r_in = trial.suggest_float('r_in', low=1.0, high=3.0, step=0.1)
-        r_cut_pair = trial.suggest_float('r_cut_pair', low=6.0, high=8.0, step=0.1)
-        r_cut_ACE = trial.suggest_float('r_cut_ACE', low=4.5, high=6.0, step=0.1)
+    
+        r_0 = trial.suggest_float('r_0', low=1.0, high=3.5, step=0.1)
+        r_in = trial.suggest_float('r_in', low=0.7, high=3.5, step=0.1)
+        r_cut_pair = trial.suggest_float('r_cut_pair', low=4.5, high=8.0, step=0.1)
+        r_cut_ACE = trial.suggest_float('r_cut_ACE', low=4.5, high=8.0, step=0.1)
         
-        Dn_w = trial.suggest_float('Dn_w', low=1.0, high=1.0, step=0.1)
+        Dn_w = trial.suggest_float('Dn_w', low=1.0, high=1.4, step=0.1)
         Dl_w = trial.suggest_float('Dl_w', low=1.0, high=1.5, step=0.1)
         
-        Dd_deg = trial.suggest_int('Dd_deg', low=4, high=14, step=1)
-        Dd_1 = trial.suggest_float('Dd_1', low=6, high=12, step=1)
-        Dd_2 = trial.suggest_float('Dd_2', low=6, high=12, step=1)
-        Dd_3 = trial.suggest_float('Dd_3', low=6, high=12, step=1)
-        Dd_4 = trial.suggest_float('Dd_4', low=6, high=12, step=1)
+        Dd_deg = trial.suggest_int('Dd_deg', low=4, high=16, step=1)
+        Dd_1 = trial.suggest_float('Dd_1', low=4, high=16, step=1)
+        Dd_2 = trial.suggest_float('Dd_2', low=4, high=16, step=1)
+        Dd_3 = trial.suggest_float('Dd_3', low=4, high=16, step=1)
+        Dd_4 = trial.suggest_float('Dd_4', low=4, high=16, step=1)
 
         basis_info = {
         "elements" : elements,    # elements in ACE basis
