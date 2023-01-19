@@ -50,6 +50,8 @@ def full_basis(basis_info, return_length=False):
     #         """)
 
     Main.eval("""
+            using ACE1: transformed_jacobi, transformed_jacobi_env
+
             Dd = Dict("default" => Dd_deg,
             1 => Dd_1,
             2 => Dd_2,
@@ -69,12 +71,18 @@ def full_basis(basis_info, return_length=False):
                    maxdeg = 1.0,
                    pin = 2)     # require smooth inner cutoff 
 
-            Bpair = pair_basis(species = Symbol.(elements),
-                   r0 = r_0,
-                   maxdeg = poly_deg_pair,
-                   rcut = r_cut_pair,
-                   rin = 0.0,
-                   pin = 0 )
+            # Bpair = pair_basis(species = Symbol.(elements),
+            #        r0 = r_0,
+            #        maxdeg = poly_deg_pair,
+            #        rcut = r_cut_pair,
+            #        rin = 0.0,
+            #        pin = 0 )
+
+            trans_r = AgnesiTransform(; r0=r_0, p = 2)
+            envelope_r = ACE1.PolyEnvelope(2, r_0, r_cut_pair)
+            Jnew = transformed_jacobi_env(poly_deg_pair, trans_r, envelope_r, r_cut_pair)
+
+            Bpair = PolyPairBasis(Jnew, Symbol.(elements))
 
             B = JuLIP.MLIPs.IPSuperBasis([Bpair, Bsite]);
 
