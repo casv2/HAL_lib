@@ -44,7 +44,7 @@ def BO_basis_optim(optim_basis_param, solver, atoms_list, E0s, data_keys, weight
         poly_deg_pair = trial.suggest_int('poly_deg_pair', low=4, high=16, step=1)
     
         r_0 = trial.suggest_float('r_0', low=1.0, high=3.5, step=0.05)
-        r_0_env = trial.suggest_float('r_0', low=0.5, high=3.5, step=0.05)
+        r_0_env = trial.suggest_float('r_0_env', low=0.5, high=3.5, step=0.05)
         r_in = trial.suggest_float('r_in', low=0.7, high=3.5, step=0.05)
         r_cut_pair = trial.suggest_float('r_cut_pair', low=4.5, high=8.0, step=0.1)
         r_cut_ACE = trial.suggest_float('r_cut_ACE', low=4.5, high=8.0, step=0.1)
