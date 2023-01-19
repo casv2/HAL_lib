@@ -13,6 +13,7 @@ def full_basis(basis_info, return_length=False):
     #Main.poly_deg_ACE = basis_info["poly_deg_ACE"]
     Main.poly_deg_pair = basis_info["poly_deg_pair"]
     Main.r_0 = basis_info["r_0"]
+    Main.r_0_env = basis_info["r_0_env"]
     Main.r_in = basis_info["r_in"]
     Main.r_cut_ACE = basis_info["r_cut_ACE"]
     Main.r_cut_pair = basis_info["r_cut_pair"]
@@ -79,7 +80,7 @@ def full_basis(basis_info, return_length=False):
             #        pin = 0 )
 
             trans_r = AgnesiTransform(; r0=r_0, p = 2)
-            envelope_r = ACE1.PolyEnvelope(2, r_0, r_cut_pair)
+            envelope_r = ACE1.PolyEnvelope(2, r_0_env, r_cut_pair)
             Jnew = transformed_jacobi_env(poly_deg_pair, trans_r, envelope_r, r_cut_pair)
 
             Bpair = PolyPairBasis(Jnew, Symbol.(elements))
