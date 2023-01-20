@@ -43,7 +43,13 @@ def BO_basis_optim(optim_basis_param, solver, atoms_list, E0s, data_keys, weight
         cor_order = trial.suggest_int('cor_order', low=2, high=4, step=1)
         poly_deg_pair = trial.suggest_int('poly_deg_pair', low=4, high=16, step=1)
     
-        r_0 = trial.suggest_float('r_0', low=1.0, high=3.5, step=0.05)
+        r_01 = trial.suggest_float('r_01', low=1.0, high=3.5, step=0.1)
+        r_02 = trial.suggest_float('r_02', low=1.0, high=3.5, step=0.1)
+        r_03 = trial.suggest_float('r_03', low=1.0, high=3.5, step=0.1)
+        r_04 = trial.suggest_float('r_04', low=1.0, high=3.5, step=0.1)
+        r_05 = trial.suggest_float('r_05', low=1.0, high=3.5, step=0.1)
+        r_06 = trial.suggest_float('r_06', low=1.0, high=3.5, step=0.1)
+
         r_0_env = trial.suggest_float('r_0_env', low=0.5, high=3.5, step=0.05)
         r_in = trial.suggest_float('r_in', low=0.7, high=3.5, step=0.05)
         r_cut_pair = trial.suggest_float('r_cut_pair', low=4.5, high=8.0, step=0.1)
@@ -70,7 +76,12 @@ def BO_basis_optim(optim_basis_param, solver, atoms_list, E0s, data_keys, weight
         "Dd_4" : Dd_4,
         "poly_deg_pair" : poly_deg_pair,          # polynomial degree in auxiliary pair potential
         "r_0_env" : r_0_env,                  # typical nearest neighbour distance
-        "r_0" : r_0,                  # typical nearest neighbour distance
+        "r_01" : r_01,                  # typical nearest neighbour distance
+        "r_02" : r_02, 
+        "r_03" : r_03, 
+        "r_04" : r_04, 
+        "r_05" : r_05, 
+        "r_06" : r_06, 
         "r_in" : r_in,                 # ACE inner cutoff (0.5 is default)
         "r_cut_ACE" : r_cut_ACE,
         "r_cut_pair" : r_cut_pair}          # ACE outer cutoff (4.5-5.5 is default) (pair outer cutoff = ACE cutoff + 1.0 Å)

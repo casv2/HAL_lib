@@ -12,7 +12,14 @@ def full_basis(basis_info, return_length=False):
     Main.cor_order = basis_info["cor_order"]
     #Main.poly_deg_ACE = basis_info["poly_deg_ACE"]
     Main.poly_deg_pair = basis_info["poly_deg_pair"]
-    Main.r_0 = basis_info["r_0"]
+    
+    Main.r_01 = basis_info["r_01"]
+    Main.r_02 = basis_info["r_02"]
+    Main.r_03 = basis_info["r_03"]
+    Main.r_04 = basis_info["r_04"]
+    Main.r_05 = basis_info["r_05"]
+    Main.r_06 = basis_info["r_06"]
+
     Main.r_0_env = basis_info["r_0_env"]
     Main.r_in = basis_info["r_in"]
     Main.r_cut_ACE = basis_info["r_cut_ACE"]
@@ -74,13 +81,12 @@ def full_basis(basis_info, return_length=False):
                    pin = 2)     # require smooth inner cutoff 
 
             transforms = Dict(
-                    (:Fe, :C) => AgnesiTransform(; r0=r_01, p = 2)
-                    (:C, :Al) => AgnesiTransform(; r0=r_02, p = 2)
-                    (:Fe, :Al) => AgnesiTransform(; r0=r_03, p = 2)
-                    (:Fe, :Fe) => AgnesiTransform(; r0=r_04, p = 2)
-                    (:Al, :Al) => AgnesiTransform(; r0=r_05, p = 2)
-                    (:C, :C) => AgnesiTransform(; r0=r_06, p = 2)
-                    (:Al, :Fe) => AgnesiTransform(; r0=r_07, p = 2)
+                    (:I, :I) => AgnesiTransform(; r0=r_01, p = 2),
+                    (:I, :Pb) => AgnesiTransform(; r0=r_02, p = 2),
+                    (:I, :Cs) => AgnesiTransform(; r0=r_03, p = 2),
+                    (:Cs, :Cs) => AgnesiTransform(; r0=r_04, p = 2),
+                    (:Cs, :Pb) => AgnesiTransform(; r0=r_05, p = 2),
+                    (:Pb, :Pb) => => AgnesiTransform(; r0=r_06, p = 2),
                 )
 
             trans_r = multitransform(transforms)
