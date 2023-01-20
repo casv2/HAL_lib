@@ -52,6 +52,7 @@ def full_basis(basis_info, return_length=False):
 
     Main.eval("""
             using ACE1: transformed_jacobi, transformed_jacobi_env
+            using ACE1.Transforms: multitransform, transform, transform_d
 
             Dd = Dict("default" => Dd_deg,
             1 => Dd_1,
@@ -72,14 +73,19 @@ def full_basis(basis_info, return_length=False):
                    maxdeg = 1.0,
                    pin = 2)     # require smooth inner cutoff 
 
-            # Bpair = pair_basis(species = Symbol.(elements),
-            #        r0 = r_0,
-            #        maxdeg = poly_deg_pair,
-            #        rcut = r_cut_pair,
-            #        rin = 0.0,
-            #        pin = 0 )
+            transforms = Dict(
+                    (:Fe, :C) => AgnesiTransform(; r0=r_01, p = 2)
+                    (:C, :Al) => AgnesiTransform(; r0=r_02, p = 2)
+                    (:Fe, :Al) => AgnesiTransform(; r0=r_03, p = 2)
+                    (:Fe, :Fe) => AgnesiTransform(; r0=r_04, p = 2)
+                    (:Al, :Al) => AgnesiTransform(; r0=r_05, p = 2)
+                    (:C, :C) => AgnesiTransform(; r0=r_06, p = 2)
+                    (:Al, :Fe) => AgnesiTransform(; r0=r_07, p = 2)
+                )
 
-            trans_r = AgnesiTransform(; r0=r_0, p = 2)
+            trans_r = multitransform(transforms)
+
+            #trans_r = AgnesiTransform(; r0=r_0, p = 2)
             envelope_r = ACE1.PolyEnvelope(2, r_0_env, r_cut_pair)
             Jnew = transformed_jacobi_env(poly_deg_pair, trans_r, envelope_r, r_cut_pair)
 
