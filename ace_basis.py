@@ -86,7 +86,7 @@ def full_basis(basis_info, return_length=False):
                     (:I, :Cs) => AgnesiTransform(; r0=r_03, p = 2),
                     (:Cs, :Cs) => AgnesiTransform(; r0=r_04, p = 2),
                     (:Cs, :Pb) => AgnesiTransform(; r0=r_05, p = 2),
-                    (:Pb, :Pb) => => AgnesiTransform(; r0=r_06, p = 2),
+                    (:Pb, :Pb) => AgnesiTransform(; r0=r_06, p = 2),
                 )
 
             trans_r = multitransform(transforms)
