@@ -2,7 +2,7 @@
 from julia.api import Julia
 jl = Julia(compiled_modules=False)
 from julia import Main
-Main.eval("using ASE, JuLIP, ACE1")
+Main.eval("using ASE, JuLIP, ACE1, ACE1x")
 
 from HAL_lib import ACEcalculator
 from HAL_lib import COcalculator
@@ -12,19 +12,17 @@ def full_basis(basis_info, return_length=False):
     Main.cor_order = basis_info["cor_order"]
     #Main.poly_deg_ACE = basis_info["poly_deg_ACE"]
     Main.poly_deg_pair = basis_info["poly_deg_pair"]
-    
-    Main.r_01 = basis_info["r_01"]
-    Main.r_02 = basis_info["r_02"]
-    Main.r_03 = basis_info["r_03"]
-    Main.r_04 = basis_info["r_04"]
-    Main.r_05 = basis_info["r_05"]
-    Main.r_06 = basis_info["r_06"]
 
-    Main.r_0_env = basis_info["r_0_env"]
+    Main.r_0 = basis_info["r_0"]
+
+    #Main.p_env = basis_info["p_env"]
+    #Main.p_trans = basis_info["p_trans"]
+
+    #Main.r_0_env = basis_info["r_0_env"]
     Main.r_in = basis_info["r_in"]
     Main.r_cut_ACE = basis_info["r_cut_ACE"]
     Main.r_cut_pair = basis_info["r_cut_pair"]
-    
+
     Main.Dn_w = basis_info["Dn_w"]
     Main.Dl_w = basis_info["Dl_w"]
 
@@ -35,31 +33,41 @@ def full_basis(basis_info, return_length=False):
     Main.Dd_4 = basis_info["Dd_4"]
 
 
-    # Main.eval("""
-    #         using ACE1: transformed_jacobi, transformed_jacobi_env
-
-    #         Bsite = rpi_basis(species = Symbol.(elements),
-    #                             N = cor_order,       # correlation order = body-order - 1
-    #                             maxdeg = poly_deg_ACE,  # polynomial degree
-    #                             r0 = r_0,     # estimate for NN distance
-    #                             rin = r_in,
-    #                             rcut = r_cut_ACE,   # domain for radial basis (cf documentation)
-    #                             pin = 2)                     # require smooth inner cutoff
-
-    #         trans_r = AgnesiTransform(; r0=r_0, p = p_trans)
-    #         envelope_r = ACE1.PolyEnvelope(p_env, r_0, r_cut_pair)
-    #         Jnew = transformed_jacobi_env(poly_deg_pair, trans_r, envelope_r, r_cut_pair)
-
-    #         Bpair = PolyPairBasis(Jnew, Symbol.(elements))
-            
-    #         B = JuLIP.MLIPs.IPSuperBasis([Bpair, Bsite]);
-
-    #         basis_length = length(B)
-    #         """)
-
     Main.eval("""
             using ACE1: transformed_jacobi, transformed_jacobi_env
             using ACE1.Transforms: multitransform, transform, transform_d
+            using ACE1: PolyTransform, transformed_jacobi, SparsePSHDegree, BasicPSH1pBasis, evaluate 
+            using ACE1.Random: rand_vec 
+            using ACE1.Testing: print_tf 
+            using LinearAlgebra: qr, norm, Diagonal, I
+            using SparseArrays
+            using JuLIP 
+
+            # Dd = Dict("default" => Dd_deg,
+            # 1 => Dd_1,
+            # 2 => Dd_2,
+            # 3 => Dd_3,
+            # 4 => Dd_4,)
+      
+            # Dn = Dict( "default" => Dn_w ) 
+            # Dl = Dict( "default" => Dl_w ) 
+
+            # Deg = ACE1.RPI.SparsePSHDegreeM(Dn, Dl, Dd)            
+        
+            # Bsite = rpi_basis(species = Symbol.(elements),
+            #        N = cor_order,
+            #        r0 = r_0,
+            #        D = Deg,
+            #        rin = r_in, rcut = r_cut_ACE,  
+            #        maxdeg = 1.0,
+            #        pin = 2)     # require smooth inner cutoff 
+
+            #D = SparsePSHDegree()
+
+            #ord = cor_order
+            #maxdeg = max_deg
+
+            #########################################
 
             Dd = Dict("default" => Dd_deg,
             1 => Dd_1,
@@ -70,34 +78,31 @@ def full_basis(basis_info, return_length=False):
             Dn = Dict( "default" => Dn_w ) 
             Dl = Dict( "default" => Dl_w ) 
 
-            Deg = ACE1.RPI.SparsePSHDegreeM(Dn, Dl, Dd)            
-        
-            Bsite = rpi_basis(species = Symbol.(elements),
-                   N = cor_order,
+            Deg = ACE1.RPI.SparsePSHDegreeM(Dn, Dl, Dd)
+            #D = ACE1.RPI.SparsePSHDegree()
+
+            trans = PolyTransform(1, r_0)
+
+            ninc = (pcut + pin) * (ord-1)
+            maxn = maxdeg + ninc 
+
+            Pr = transformed_jacobi(maxn, trans, r_cut_ACE, r_in; pcut = 2, pin = 2)
+            
+            rpibasis = ACE1x.Pure2b.pure2b_basis(species = AtomicNumber.(Symbol.(elements)),
+                                       Rn=Pr, 
+                                       D=D,
+                                       maxdeg=1.0, 
+                                       order=cor_order, 
+                                       delete2b = true)
+
+            pair = pair_basis(species = Symbol.(elements),
                    r0 = r_0,
-                   D = Deg,
-                   rin = r_in, rcut = r_cut_ACE,  
-                   maxdeg = 1.0,
-                   pin = 2)     # require smooth inner cutoff 
+                   maxdeg = poly_deg_pair,
+                   rcut = r_cut_pair,
+                   rin = 0.0,
+                   pin = 0 )
 
-            transforms = Dict(
-                    (:I, :I) => AgnesiTransform(; r0=r_01, p = 2),
-                    (:I, :Pb) => AgnesiTransform(; r0=r_02, p = 2),
-                    (:I, :Cs) => AgnesiTransform(; r0=r_03, p = 2),
-                    (:Cs, :Cs) => AgnesiTransform(; r0=r_04, p = 2),
-                    (:Cs, :Pb) => AgnesiTransform(; r0=r_05, p = 2),
-                    (:Pb, :Pb) => AgnesiTransform(; r0=r_06, p = 2),
-                )
-
-            trans_r = multitransform(transforms)
-
-            #trans_r = AgnesiTransform(; r0=r_0, p = 2)
-            envelope_r = ACE1.PolyEnvelope(2, r_0_env, r_cut_pair)
-            Jnew = transformed_jacobi_env(poly_deg_pair, trans_r, envelope_r, r_cut_pair)
-
-            Bpair = PolyPairBasis(Jnew, Symbol.(elements))
-
-            B = JuLIP.MLIPs.IPSuperBasis([Bpair, Bsite]);
+            B = JuLIP.MLIPs.IPSuperBasis([pair, rpibasis]);
 
             basis_length = length(B)
             """)
