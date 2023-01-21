@@ -61,7 +61,7 @@ def full_basis(basis_info, return_length=False):
 
             pin = 2
             pcut = 2
-            ninc = (pcut + pin) * (ord-1)
+            ninc = (pcut + pin) * (cor_order-1)
             maxn = maxdeg + ninc 
 
             Pr = transformed_jacobi(maxn, trans, r_cut_ACE, r_in; pcut = 2, pin = 2)
