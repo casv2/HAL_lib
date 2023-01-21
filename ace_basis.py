@@ -59,6 +59,8 @@ def full_basis(basis_info, return_length=False):
 
             trans = PolyTransform(1, r_0)
 
+            pin = 2
+            pcut = 2
             ninc = (pcut + pin) * (ord-1)
             maxn = maxdeg + ninc 
 
