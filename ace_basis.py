@@ -35,37 +35,13 @@ def full_basis(basis_info, return_length=False):
 
     Main.eval("""
             using ACE1: transformed_jacobi, transformed_jacobi_env
-            using ACE1.Transforms: multitransform, transform, transform_d
-            using ACE1: PolyTransform, transformed_jacobi, SparsePSHDegree, BasicPSH1pBasis, evaluate 
-            using ACE1.Random: rand_vec 
-            using ACE1.Testing: print_tf 
-            using LinearAlgebra: qr, norm, Diagonal, I
-            using SparseArrays
-            using JuLIP 
-
-            # Dd = Dict("default" => Dd_deg,
-            # 1 => Dd_1,
-            # 2 => Dd_2,
-            # 3 => Dd_3,
-            # 4 => Dd_4,)
-      
-            # Dn = Dict( "default" => Dn_w ) 
-            # Dl = Dict( "default" => Dl_w ) 
-
-            # Deg = ACE1.RPI.SparsePSHDegreeM(Dn, Dl, Dd)            
-        
-            # Bsite = rpi_basis(species = Symbol.(elements),
-            #        N = cor_order,
-            #        r0 = r_0,
-            #        D = Deg,
-            #        rin = r_in, rcut = r_cut_ACE,  
-            #        maxdeg = 1.0,
-            #        pin = 2)     # require smooth inner cutoff 
-
-            #D = SparsePSHDegree()
-
-            #ord = cor_order
-            #maxdeg = max_deg
+            # using ACE1.Transforms: multitransform, transform, transform_d
+            # using ACE1: PolyTransform, transformed_jacobi, SparsePSHDegree, BasicPSH1pBasis, evaluate 
+            # using ACE1.Random: rand_vec 
+            # using ACE1.Testing: print_tf 
+            # using LinearAlgebra: qr, norm, Diagonal, I
+            # using SparseArrays
+            # using JuLIP 
 
             #########################################
 
@@ -94,6 +70,11 @@ def full_basis(basis_info, return_length=False):
                                        maxdeg=1.0, 
                                        order=cor_order, 
                                        delete2b = true)
+
+            # trans_r = AgnesiTransform(; r0=r_0, p = 2)
+            # envelope_r = ACE1.PolyEnvelope(2, r_in, r_cut_pair)
+            # Jnew = transformed_jacobi_env(poly_deg_pair, trans_r, envelope_r, r_cut_pair)
+            # pair = PolyPairBasis(Jnew, Symbol.(elements))
 
             pair = pair_basis(species = Symbol.(elements),
                    r0 = r_0,

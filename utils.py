@@ -24,6 +24,11 @@ def plot_dimer(IP, elements, E0s, R = np.linspace(0.1, 8.0, 100), m=0, save=True
                 if np.min(E) < minE:
                     minE = np.min(E)
                 plt.plot(R, E, label="{}-{}".format(el1, el2))
+
+    print(minE)
+    if minE < -5.0:
+        minE = -5.0
+    
     plt.ylim(1.2 * minE, -1.2 * minE)
     plt.ylabel("Energy [eV/atom]", fontsize=14)
     plt.xlabel("Interatomic distance [Å]", fontsize=14)
