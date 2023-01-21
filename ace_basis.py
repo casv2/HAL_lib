@@ -23,14 +23,14 @@ def full_basis(basis_info, return_length=False):
     Main.r_cut_ACE = basis_info["r_cut_ACE"]
     Main.r_cut_pair = basis_info["r_cut_pair"]
 
-    Main.Dn_w = basis_info["Dn_w"]
-    Main.Dl_w = basis_info["Dl_w"]
+    # Main.Dn_w = basis_info["Dn_w"]
+    # Main.Dl_w = basis_info["Dl_w"]
 
-    Main.Dd_deg = basis_info["Dd_deg"]
-    Main.Dd_1 = basis_info["Dd_1"]
-    Main.Dd_2 = basis_info["Dd_2"]
-    Main.Dd_3 = basis_info["Dd_3"]
-    Main.Dd_4 = basis_info["Dd_4"]
+    Main.maxdeg = basis_info["maxdeg"]
+    # Main.Dd_1 = basis_info["Dd_1"]
+    # Main.Dd_2 = basis_info["Dd_2"]
+    # Main.Dd_3 = basis_info["Dd_3"]
+    # Main.Dd_4 = basis_info["Dd_4"]
 
 
     Main.eval("""
@@ -41,21 +41,22 @@ def full_basis(basis_info, return_length=False):
             # using ACE1.Testing: print_tf 
             # using LinearAlgebra: qr, norm, Diagonal, I
             # using SparseArrays
-            # using JuLIP 
+            # using JuLIP
+
+            # Dd = Dict("default" => Dd_deg,
+            # 1 => Dd_1,
+            # 2 => Dd_2,
+            # 3 => Dd_3,
+            # 4 => Dd_4,)
+      
+            # Dn = Dict( "default" => Dn_w ) 
+            # Dl = Dict( "default" => Dl_w ) 
+
+            # Deg = ACE1.RPI.SparsePSHDegreeM(Dn, Dl, Dd)
 
             #########################################
 
-            Dd = Dict("default" => Dd_deg,
-            1 => Dd_1,
-            2 => Dd_2,
-            3 => Dd_3,
-            4 => Dd_4,)
-      
-            Dn = Dict( "default" => Dn_w ) 
-            Dl = Dict( "default" => Dl_w ) 
-
-            Deg = ACE1.RPI.SparsePSHDegreeM(Dn, Dl, Dd)
-            #D = ACE1.RPI.SparsePSHDegree()
+            D = ACE1.RPI.SparsePSHDegree()
 
             trans = PolyTransform(1, r_0)
 
@@ -69,7 +70,7 @@ def full_basis(basis_info, return_length=False):
             rpibasis = ACE1x.Pure2b.pure2b_basis(species = AtomicNumber.(Symbol.(elements)),
                                        Rn=Pr, 
                                        D=D,
-                                       maxdeg=1.0, 
+                                       maxdeg=maxdeg, 
                                        order=cor_order, 
                                        delete2b = true)
 

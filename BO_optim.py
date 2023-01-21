@@ -22,14 +22,14 @@ def BO_basis_optim(optim_basis_param, solver, atoms_list, E0s, data_keys, weight
         r_in = trial.suggest_float('r_in', low=0.5, high=3.5, step=0.1)
         r_cut_ACE = trial.suggest_float('r_cut_ACE', low=4.5, high=8.0, step=0.1)
 
-        Dn_w = trial.suggest_float('Dn_w', low=1.0, high=1.0, step=0.1)
-        Dl_w = trial.suggest_float('Dl_w', low=1.0, high=1.4, step=0.1)
+        # Dn_w = trial.suggest_float('Dn_w', low=1.0, high=1.0, step=0.1)
+        # Dl_w = trial.suggest_float('Dl_w', low=1.0, high=1.4, step=0.1)
 
-        Dd_deg = trial.suggest_int('Dd_deg', low=4, high=16, step=1)
-        Dd_1 = trial.suggest_float('Dd_1', low=4, high=16, step=1)
-        Dd_2 = trial.suggest_float('Dd_2', low=4, high=16, step=1)
-        Dd_3 = trial.suggest_float('Dd_3', low=4, high=16, step=1)
-        Dd_4 = trial.suggest_float('Dd_4', low=4, high=16, step=1)
+        maxdeg = trial.suggest_int('maxdeg', low=4, high=16, step=1)
+        # Dd_1 = trial.suggest_float('Dd_1', low=4, high=16, step=1)
+        # Dd_2 = trial.suggest_float('Dd_2', low=4, high=16, step=1)
+        # Dd_3 = trial.suggest_float('Dd_3', low=4, high=16, step=1)
+        # Dd_4 = trial.suggest_float('Dd_4', low=4, high=16, step=1)
 
         poly_deg_pair = trial.suggest_int('poly_deg_pair', low=7, high=16, step=1)
         r_cut_pair = trial.suggest_float('r_cut_pair', low=6.0, high=8.0, step=0.1)
@@ -37,15 +37,9 @@ def BO_basis_optim(optim_basis_param, solver, atoms_list, E0s, data_keys, weight
         basis_info = {
         "elements" : elements,    # elements in ACE basis
         "cor_order" : cor_order,              # maximum correlation order 
-        "Dd_deg" : Dd_deg,
         "poly_deg_pair" : poly_deg_pair,
         "r_cut_pair" : r_cut_pair,
-        "Dn_w" : Dn_w,
-        "Dl_w" : Dl_w,
-        "Dd_1" : Dd_1,
-        "Dd_2" : Dd_2,
-        "Dd_3" : Dd_3,
-        "Dd_4" : Dd_4,
+        "maxdeg" : maxdeg,
         "r_0" : r_0,
         "r_in" : r_in,# typical nearest neighbour distance
         "r_cut_ACE" : r_cut_ACE}
