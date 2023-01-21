@@ -10,63 +10,26 @@ from HAL_lib import COcalculator
 def full_basis(basis_info, return_length=False):
     Main.elements = basis_info["elements"]
     Main.cor_order = basis_info["cor_order"]
-    #Main.poly_deg_ACE = basis_info["poly_deg_ACE"]
+    Main.maxdeg = basis_info["maxdeg"]
     Main.poly_deg_pair = basis_info["poly_deg_pair"]
-
     Main.r_0 = basis_info["r_0"]
-
-    #Main.p_env = basis_info["p_env"]
-    #Main.p_trans = basis_info["p_trans"]
-
-    #Main.r_0_env = basis_info["r_0_env"]
     Main.r_in = basis_info["r_in"]
     Main.r_cut_ACE = basis_info["r_cut_ACE"]
     Main.r_cut_pair = basis_info["r_cut_pair"]
 
-    # Main.Dn_w = basis_info["Dn_w"]
-    # Main.Dl_w = basis_info["Dl_w"]
-
-    Main.maxdeg = basis_info["maxdeg"]
-    # Main.Dd_1 = basis_info["Dd_1"]
-    # Main.Dd_2 = basis_info["Dd_2"]
-    # Main.Dd_3 = basis_info["Dd_3"]
-    # Main.Dd_4 = basis_info["Dd_4"]
-
-
     Main.eval("""
             using ACE1: transformed_jacobi, transformed_jacobi_env
-            # using ACE1.Transforms: multitransform, transform, transform_d
-            # using ACE1: PolyTransform, transformed_jacobi, SparsePSHDegree, BasicPSH1pBasis, evaluate 
-            # using ACE1.Random: rand_vec 
-            # using ACE1.Testing: print_tf 
-            # using LinearAlgebra: qr, norm, Diagonal, I
-            # using SparseArrays
-            # using JuLIP
-
-            # Dd = Dict("default" => Dd_deg,
-            # 1 => Dd_1,
-            # 2 => Dd_2,
-            # 3 => Dd_3,
-            # 4 => Dd_4,)
-      
-            # Dn = Dict( "default" => Dn_w ) 
-            # Dl = Dict( "default" => Dl_w ) 
-
-            # Deg = ACE1.RPI.SparsePSHDegreeM(Dn, Dl, Dd)
-
-            #########################################
-
-            D = ACE1.RPI.SparsePSHDegree()
-
-            trans = PolyTransform(1, r_0)
 
             pin = 2
             pcut = 2
             ninc = (pcut + pin) * (cor_order-1)
-            maxn = 16 + ninc 
+            maxn = maxdeg + ninc 
 
-            Pr = transformed_jacobi(maxn, trans, r_cut_ACE, r_in; pcut = 2, pin = 2)
+            trans = PolyTransform(1, r_0)
+            Pr = transformed_jacobi(maxn, trans, r_cut_ACE, r_in; pcut = pin, pin = pin)
             
+            D = ACE1.RPI.SparsePSHDegree()
+
             rpibasis = ACE1x.Pure2b.pure2b_basis(species = AtomicNumber.(Symbol.(elements)),
                                        Rn=Pr, 
                                        D=D,
@@ -74,17 +37,19 @@ def full_basis(basis_info, return_length=False):
                                        order=cor_order, 
                                        delete2b = true)
 
-            # trans_r = AgnesiTransform(; r0=r_0, p = 2)
-            # envelope_r = ACE1.PolyEnvelope(2, r_in, r_cut_pair)
-            # Jnew = transformed_jacobi_env(poly_deg_pair, trans_r, envelope_r, r_cut_pair)
-            # pair = PolyPairBasis(Jnew, Symbol.(elements))
+            trans_r = AgnesiTransform(; r0=r_0, p = 2)
 
             pair = pair_basis(species = Symbol.(elements),
                    r0 = r_0,
+                   trans=trans,
                    maxdeg = poly_deg_pair,
                    rcut = r_cut_pair,
                    rin = 0.0,
                    pin = 0 )
+
+            # envelope_r = ACE1.PolyEnvelope(2, r_in - 0.5, r_cut_pair)
+            # Jnew = transformed_jacobi_env(poly_deg_pair, trans_r, envelope_r, r_cut_pair)
+            # pair = PolyPairBasis(Jnew, Symbol.(elements))
 
             B = JuLIP.MLIPs.IPSuperBasis([pair, rpibasis]);
 
