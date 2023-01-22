@@ -17,17 +17,17 @@ def BO_basis_optim(optim_basis_param, solver, atoms_list, E0s, data_keys, weight
     distances_first_shell = distances_all[ distances_all <= 3.5]
     distances_non_zero = distances_first_shell[distances_first_shell != 0.0] 
 
-    r_in = np.min(distances_non_zero)
+    r_in = np.round(np.min(distances_non_zero), decimals=1)
 
     x,y = np.histogram(distances_non_zero, bins=100)
-    r_0 = y[np.argmax(x)]
+    r_0 = np.round(y[np.argmax(x)], decimals=1)
 
     print("r_in {}, r_0 : {}".format(r_in, r_0))
 
     @timeout_decorator.timeout(optim_basis_param["timeout"], use_signals=True)   
 
     def objective(trial, max_len_B=max_len_B):
-        
+
         cor_order = trial.suggest_int('cor_order', low=2, high=4, step=1)
 
         r_cut_ACE = trial.suggest_float('r_cut_ACE', low=4.5, high=np.round(2*r_0, decimals=1), step=0.1)
