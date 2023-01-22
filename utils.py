@@ -22,9 +22,14 @@ def plot_dimer(IP, elements, E0s, R = np.linspace(0.1, 8.0, 100), m=0, save=True
                     at = ase.Atoms("{}{}".format(el1, el2), cell=np.eye(3)*100, positions=[[0.0,0.0,0.0], [0.0, 0.0, r]])
                     at.set_calculator(IP)
                     E.append(at.get_potential_energy() - E0s[el1] - E0s[el2])
+                if np.min(E) < minE:
+                    minE = np.min(E)
                 plt.plot(R, E, label="{}-{}".format(el1, el2))
     
-    plt.ylim(-5, 5)
+    if minE == 0:
+        plt.ylim(-5, 5)
+    else:
+        plt.ylim(1.2 * minE, - 1.2 * minE)
     plt.ylabel("Energy [eV/atom]", fontsize=14)
     plt.xlabel("Interatomic distance [Å]", fontsize=14)
     plt.legend()
