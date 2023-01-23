@@ -47,9 +47,9 @@ def full_basis(basis_info, return_length=False):
                    rin = 0.0,
                    pin = 0 )
 
-            # envelope_r = ACE1.PolyEnvelope(2, r_in - 0.5, r_cut_pair)
-            # Jnew = transformed_jacobi_env(poly_deg_pair, trans_r, envelope_r, r_cut_pair)
-            # pair = PolyPairBasis(Jnew, Symbol.(elements))
+            envelope_r = ACE1.PolyEnvelope(2, r_in - 0.05, r_cut_pair)
+            Jnew = transformed_jacobi_env(poly_deg_pair, trans_r, envelope_r, r_cut_pair)
+            pair = PolyPairBasis(Jnew, Symbol.(elements))
 
             B = JuLIP.MLIPs.IPSuperBasis([pair, rpibasis]);
 

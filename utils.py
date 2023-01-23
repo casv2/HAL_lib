@@ -26,7 +26,7 @@ def plot_dimer(IP, elements, E0s, R = np.linspace(0.1, 8.0, 100), m=0, save=True
                     minE = np.min(E)
                 plt.plot(R, E, label="{}-{}".format(el1, el2))
     
-    if minE == 0:
+    if np.abs(minE) > 0:
         plt.ylim(-5, 5)
     else:
         plt.ylim(1.2 * minE, - 1.2 * minE)
