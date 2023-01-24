@@ -77,7 +77,7 @@ def quick_fit(B, E0s, data_keys, weights, solver, ncomms, eps, iter_i, atoms_lis
 
     return ACE_IP, CO_IP, atoms_list
 
-def HAL(optim_basis_param, E0s, weights, run_info, init_atoms_list, data_keys, start_configs, solver, calculator=None, save=False): #calculator
+def HAL(optim_basis_param, E0s, weights, run_info, atoms_list, data_keys, start_configs, solver, calculator=None, save=False): #calculator
     niters = run_info["niters"]
     ncomms = run_info["ncomms"]
     nsteps = run_info["nsteps"]
@@ -108,12 +108,12 @@ def HAL(optim_basis_param, E0s, weights, run_info, init_atoms_list, data_keys, s
         vol_settings["vol"] = True
         vol_settings["vol_step"] = run_info["vol_step"]
 
-    D = BO_optim.BO_basis_optim(optim_basis_param, solver, init_atoms_list, E0s, data_keys, weights)
-    B = ace_basis.full_basis(D) 
+    #D = BO_optim.BO_basis_optim(optim_basis_param, solver, init_atoms_list, E0s, data_keys, weights)
+    #B = ace_basis.full_basis(D) 
 
     # initial fit
-    ACE_IP, CO_IP, atoms_list, Psi, Y = add_and_fit(B, E0s, data_keys, weights, solver, ncomms, eps, 0, init_atoms_list, save=save)
-    utils.plot_dimer(ACE_IP, optim_basis_param["elements"], E0s, m=0)
+    #ACE_IP, CO_IP, atoms_list, Psi, Y = add_and_fit(B, E0s, data_keys, weights, solver, ncomms, eps, 0, init_atoms_list, save=save)
+    #utils.plot_dimer(ACE_IP, optim_basis_param["elements"], E0s, m=0)
 
     for (j, start_config) in enumerate(start_configs):
         print(f"HAL start_config {j}")
@@ -121,6 +121,15 @@ def HAL(optim_basis_param, E0s, weights, run_info, init_atoms_list, data_keys, s
             start_config.calc = None
             current_config = deepcopy(start_config)
             m = j*niters + i
+
+            if m % optim_basis_param["n_optim"] == 0 or m == 0:
+                D = BO_optim.BO_basis_optim(optim_basis_param, solver, atoms_list, E0s, data_keys, weights, D_prior=None)
+                B = ace_basis.full_basis(D) 
+                ACE_IP, CO_IP, atoms_list = quick_fit(B, E0s, data_keys, weights, solver, ncomms, eps, m, atoms_list, save=save)
+            else:
+                ACE_IP, CO_IP, atoms_list = quick_fit(B, E0s, data_keys, weights, solver, ncomms, eps, m, atoms_list, save=save)
+            
+            utils.plot_dimer(ACE_IP, optim_basis_param["elements"], E0s, m=m)
 
             t0 = time.time()
             E_tot, E_kin, E_pot, T_s, P_s, f_s, at = run(ACE_IP, CO_IP, current_config, nsteps, dt, tau_rel, tol, eps,
@@ -150,16 +159,6 @@ def HAL(optim_basis_param, E0s, weights, run_info, init_atoms_list, data_keys, s
             at.info["config_type"] = "HAL_" + at.info["config_type"]
             write(f"HAL_it{m}.extxyz", at)
             atoms_list += [at]
-
-            if m % optim_basis_param["n_optim"] == 0 and m>0:
-                D = BO_optim.BO_basis_optim(optim_basis_param, solver, atoms_list, E0s, data_keys, weights, D_prior=None)
-                B = ace_basis.full_basis(D) 
-                ACE_IP, CO_IP, atoms_list = quick_fit(B, E0s, data_keys, weights, solver, ncomms, eps, m+1, atoms_list, save=save)
-            else:
-                ACE_IP, CO_IP, atoms_list = quick_fit(B, E0s, data_keys, weights, solver, ncomms, eps, m+1, atoms_list, save=save)
-            
-            utils.plot_dimer(ACE_IP, optim_basis_param["elements"], E0s, m=m+1)
-            #    ACE_IP, CO_IP, atoms_list, Psi, Y = add_and_fit(B, E0s, data_keys, weights, solver, ncomms, eps, m+1, [at], atoms_list, Psi, Y, save=save)
 
     return atoms_list
 
