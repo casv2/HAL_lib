@@ -17,10 +17,10 @@ def BO_basis_optim(optim_basis_param, solver, atoms_list, E0s, data_keys, weight
     distances_first_shell = distances_all[ distances_all <= 3.5]
     distances_non_zero = distances_first_shell[distances_first_shell != 0.0] 
 
-    r_in = np.round(np.min(distances_non_zero), decimals=1)
+    r_in = np.min(distances_non_zero)
 
     x,y = np.histogram(distances_non_zero, bins=100)
-    r_0 = np.round(y[np.argmax(x)], decimals=1)
+    r_0 = y[np.argmax(x)]
 
     print("r_in {}, r_0 : {}".format(r_in, r_0))
 
@@ -28,13 +28,13 @@ def BO_basis_optim(optim_basis_param, solver, atoms_list, E0s, data_keys, weight
 
     def objective(trial, max_len_B=max_len_B):
 
-        cor_order = trial.suggest_int('cor_order', low=2, high=4, step=1)
+        cor_order = trial.suggest_int('cor_order', low=2, high=4)
 
-        r_cut_ACE = trial.suggest_float('r_cut_ACE', low=4.5, high=np.round(2*r_0, decimals=1), step=0.1)
-        r_cut_pair = trial.suggest_float('r_cut_pair', low=np.around(2*r_0, decimals=1), high=np.round(2.5*r_0, decimals=1), step=0.1)
+        r_cut_ACE = trial.suggest_float('r_cut_ACE', low=4.5, high=2*r_0)
+        r_cut_pair = trial.suggest_float('r_cut_pair', low=2*r_0, high=2.5*r_0)
 
-        maxdeg = trial.suggest_int('maxdeg', low=3, high=14, step=1)
-        poly_deg_pair = trial.suggest_int('poly_deg_pair', low=3, high=14, step=1)
+        maxdeg = trial.suggest_int('maxdeg', low=3, high=14)
+        poly_deg_pair = trial.suggest_int('poly_deg_pair', low=3, high=14)
 
         basis_info = {
         "elements" : elements, 
