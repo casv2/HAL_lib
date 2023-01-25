@@ -12,7 +12,6 @@ from HAL_lib import ace_basis
 
 def BO_basis_optim(optim_basis_param, solver, atoms_list, E0s, data_keys, weights, D_prior=None):#, D_max_B=None):
     elements = optim_basis_param["elements"]
-    max_len_B = optim_basis_param["max_len_B"]
     max_deg_D = optim_basis_param["max_deg_D"]
 
     distances_all = np.hstack([ at.get_all_distances(mic=True).flatten() for at in atoms_list])
@@ -28,7 +27,7 @@ def BO_basis_optim(optim_basis_param, solver, atoms_list, E0s, data_keys, weight
 
     @timeout_decorator.timeout(optim_basis_param["timeout"], use_signals=True)   
 
-    def objective(trial, max_len_B=max_len_B, max_deg_D=max_deg_D):
+    def objective(trial, max_deg_D=max_deg_D):
 
         cor_order = trial.suggest_int('cor_order', low=2, high=4)
 
@@ -54,17 +53,12 @@ def BO_basis_optim(optim_basis_param, solver, atoms_list, E0s, data_keys, weight
 
         B, len_B = ace_basis.full_basis(basis_info, return_length=True) 
 
-        #if len_B < max_len_B:
         Psi, Y = lsq.add_lsq(B, E0s, atoms_list, data_keys, weights, data_keys.get('Fmax'))
 
         solver.fit(Psi, Y)
         score = solver.scores_[-1]
 
-        print(len_B)
-
         return score
-        # else:
-        #     return -1e32
 
     study = optuna.create_study(sampler=TPESampler(), direction='maximize')
     if D_prior is not None:
