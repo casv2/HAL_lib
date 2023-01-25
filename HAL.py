@@ -107,14 +107,6 @@ def HAL(optim_basis_param, E0s, weights, run_info, atoms_list, data_keys, start_
     if run_info["vol"] == True:
         vol_settings["vol"] = True
         vol_settings["vol_step"] = run_info["vol_step"]
-
-    #D = BO_optim.BO_basis_optim(optim_basis_param, solver, init_atoms_list, E0s, data_keys, weights)
-    #B = ace_basis.full_basis(D) 
-
-    # initial fit
-    #ACE_IP, CO_IP, atoms_list, Psi, Y = add_and_fit(B, E0s, data_keys, weights, solver, ncomms, eps, 0, init_atoms_list, save=save)
-    #utils.plot_dimer(ACE_IP, optim_basis_param["elements"], E0s, m=0)
-    ######
   
     basis_info = {
         "elements" : optim_basis_param["elements"],     

@@ -13,6 +13,7 @@ from HAL_lib import ace_basis
 def BO_basis_optim(optim_basis_param, solver, atoms_list, E0s, data_keys, weights, D_prior=None):#, D_max_B=None):
     elements = optim_basis_param["elements"]
     max_deg_D = optim_basis_param["max_deg_D"]
+    max_len_B = optim_basis_param["max_len_B"]
 
     distances_all = np.hstack([ at.get_all_distances(mic=True).flatten() for at in atoms_list])
     distances_first_shell = distances_all[ distances_all <= 3.5]
@@ -27,7 +28,7 @@ def BO_basis_optim(optim_basis_param, solver, atoms_list, E0s, data_keys, weight
 
     @timeout_decorator.timeout(optim_basis_param["timeout"], use_signals=True)   
 
-    def objective(trial, max_deg_D=max_deg_D):
+    def objective(trial, max_len_B=max_len_B, max_deg_D=max_deg_D):
 
         cor_order = trial.suggest_int('cor_order', low=2, high=4)
 
@@ -51,14 +52,17 @@ def BO_basis_optim(optim_basis_param, solver, atoms_list, E0s, data_keys, weight
         "r_in" : r_in,
         "r_cut_ACE" : r_cut_ACE}
 
-        B = ace_basis.full_basis(basis_info)
+        B, len_B = ace_basis.full_basis(basis_info, return_length=True)
 
         Psi, Y = lsq.add_lsq(B, E0s, atoms_list, data_keys, weights, data_keys.get('Fmax'))
 
         solver.fit(Psi, Y)
         score = solver.scores_[-1]
 
-        return score
+        if len_B > max_len_B:
+            return -1e32
+        else:
+            return score
 
     study = optuna.create_study(sampler=TPESampler(), direction='maximize')
     if D_prior is not None:
