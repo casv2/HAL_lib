@@ -25,9 +25,6 @@ def print_errors(IP, al, data_keys, CO_IP, eps):
 
     max_pred_err_i = np.argmax(rel_pred_F_err)
 
-    # rel_actual_F_err = np.linalg.norm(F_ACE - F_DFT, axis=1) / (np.linalg.norm(F_DFT, axis=1) + eps)
-    # max_actual_err_i = np.argmax(rel_actual_F_err)
-
     E_RMSE = np.sqrt(np.mean(np.power(np.asarray(E_DFT) - np.asarray(E_ACE), 2)))
     F_RMSE = np.sqrt(np.mean(np.power(np.asarray(F_DFT) - np.asarray(F_ACE), 2)))
 
