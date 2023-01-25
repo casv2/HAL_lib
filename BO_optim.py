@@ -13,6 +13,7 @@ from HAL_lib import ace_basis
 def BO_basis_optim(optim_basis_param, solver, atoms_list, E0s, data_keys, weights, D_prior=None):#, D_max_B=None):
     elements = optim_basis_param["elements"]
     max_len_B = optim_basis_param["max_len_B"]
+    max_deg_D = optim_basis_param["max_deg_D"]
 
     distances_all = np.hstack([ at.get_all_distances(mic=True).flatten() for at in atoms_list])
     distances_first_shell = distances_all[ distances_all <= 3.5]
@@ -27,15 +28,19 @@ def BO_basis_optim(optim_basis_param, solver, atoms_list, E0s, data_keys, weight
 
     @timeout_decorator.timeout(optim_basis_param["timeout"], use_signals=True)   
 
-    def objective(trial, max_len_B=max_len_B):
+    def objective(trial, max_len_B=max_len_B, max_deg_D=max_deg_D):
 
         cor_order = trial.suggest_int('cor_order', low=2, high=4)
+
+        if cor_order in max_deg_D:
+            maxdeg = trial.suggest_int('maxdeg', low=3, high=max_deg_D[cor_order])
+        else:
+            maxdeg = trial.suggest_int('maxdeg', low=3, high=22)
 
         r_cut_ACE = trial.suggest_float('r_cut_ACE', low=4.5, high=2*r_0)
         r_cut_pair = trial.suggest_float('r_cut_pair', low=2*r_0, high=2.5*r_0)
 
-        maxdeg = trial.suggest_int('maxdeg', low=3, high=14)
-        poly_deg_pair = trial.suggest_int('poly_deg_pair', low=3, high=14)
+        poly_deg_pair = trial.suggest_int('poly_deg_pair', low=3, high=22)
 
         basis_info = {
         "elements" : elements, 

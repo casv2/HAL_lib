@@ -114,6 +114,32 @@ def HAL(optim_basis_param, E0s, weights, run_info, atoms_list, data_keys, start_
     # initial fit
     #ACE_IP, CO_IP, atoms_list, Psi, Y = add_and_fit(B, E0s, data_keys, weights, solver, ncomms, eps, 0, init_atoms_list, save=save)
     #utils.plot_dimer(ACE_IP, optim_basis_param["elements"], E0s, m=0)
+    ######
+
+    elements = optim_basis_param["elements"]
+    max_len_B = optim_basis_param["max_len_B"]
+
+    basis_info = {
+        "elements" :  elements,     
+        "poly_deg_pair" : 22,
+        "r_cut_pair" : 7.0,
+        "r_0" : 2.5,
+        "r_in" : 1.8,
+        "r_cut_ACE" : 5.0}
+
+    max_deg_D = {}
+
+    for cor_order in range(2,5):
+        for deg in range(3,22):
+            basis_info["cor_order"] = cor_order
+            basis_info["maxdeg"] = deg
+            _, len_B = ace_basis.full_basis(basis_info, return_length=True) 
+            print(len_B)
+            if len_B > max_len_B: #for the max pair
+                max_deg_D[cor_order] = deg
+                break
+
+    optim_basis_param["max_deg_D"] = max_deg_D
 
     for (j, start_config) in enumerate(start_configs):
         print(f"HAL start_config {j}")
