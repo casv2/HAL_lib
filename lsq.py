@@ -94,26 +94,24 @@ def fit(Psi, Y, B, E0s, solver, ncomms=32, mvn_hermitian=True):
 
     # Code below is for ARD solver, TO DO:
     if sigma.shape[0] != len(c):
-        sigma_large = np.zeros((len(c), len(c)))
-        non_zeros = np.nonzero(c)
-        for (i, r_ind) in enumerate(non_zeros):
-            r = np.zeros(len(c))
-            r[non_zeros] = sigma[:, i]
-            sigma_large[r_ind, :] = r
-        sigma = sigma_large
+        sigma = np.zeros((len(c), len(c)), dtype=float)
+        for (i,non_zero) in enumerate(np.nonzero(c)):
+            print(non_zero)
+            coeff = solver.sigma_[i, i]
+            sigma[non_zero, non_zero] = coeff
         #comms = np.random.multivariate_normal(c, 0.5*(sigma_large + sigma_large.T), size=ncomms)
     #else:
 
-    sigma_min_eig_val = np.min(np.real(np.linalg.eigvals(sigma)))
-    sigma_reg = sigma + (np.eye(sigma.shape[0]) * np.abs(sigma_min_eig_val) * 10)
-    sigma_reg_min_eig_val = np.min(np.real(np.linalg.eigvals(sigma_reg)))
+    #sigma_min_eig_val = np.min(np.real(np.linalg.eigvals(sigma)))
+    #sigma_reg = sigma + (np.eye(sigma.shape[0]) * np.abs(sigma_min_eig_val) * 10)
+    #sigma_reg_min_eig_val = np.min(np.real(np.linalg.eigvals(sigma_reg)))
 
-    print("sigma min eigval: {}, sigma_reg min eigval: {}, score: {}".format(sigma_min_eig_val, sigma_reg_min_eig_val, score))
+    print("score: {}".format(score))
 
-    if mvn_hermitian:
-        comms = multivariate_normal_hermitian(c, sigma_reg, size=ncomms)
-    else:
-        comms = np.random.multivariate_normal(c, sigma_reg, size=ncomms)
+    #if mvn_hermitian:
+    #    comms = multivariate_normal_hermitian(c, sigma, size=ncomms)
+    #else:
+    comms = np.random.multivariate_normal(c, sigma, size=ncomms)
     
     IP, IPs = ace_basis.combine(B, c, E0s, comms)
     
