@@ -96,7 +96,6 @@ def fit(Psi, Y, B, E0s, solver, ncomms=32, mvn_hermitian=True):
     if sigma.shape[0] != len(c):
         sigma = np.zeros((len(c), len(c)), dtype=float)
         for (i,non_zero) in enumerate(np.nonzero(c)):
-            print(non_zero)
             coeff = solver.sigma_[i, i]
             sigma[non_zero, non_zero] = coeff
         #comms = np.random.multivariate_normal(c, 0.5*(sigma_large + sigma_large.T), size=ncomms)
