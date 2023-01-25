@@ -2,7 +2,8 @@ import optuna
 from optuna.samplers import TPESampler
 import timeout_decorator
 from timeout_decorator.timeout_decorator import TimeoutError
-from optuna.trial._state import TrialState
+from optuna.study import MaxTrialsCallback
+from optuna.trial import TrialState
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -56,13 +57,13 @@ def BO_basis_optim(optim_basis_param, solver, atoms_list, E0s, data_keys, weight
 
             return score
         else:
-            return -1e32
+            return "fail"
 
     study = optuna.create_study(sampler=TPESampler(), direction='maximize')
     if D_prior is not None:
         study.enqueue_trial(D_prior)
     
-    study.optimize(objective, n_trials=optim_basis_param["n_trials"], catch=(TimeoutError,))#, show_progress_bar=True)
+    study.optimize(objective, callbacks=[MaxTrialsCallback(optim_basis_param["n_trials"], states=(TrialState.COMPLETE,))], catch=(TimeoutError,))#, show_progress_bar=True)
 
     D = study.best_params
     D["r_in"] = r_in
