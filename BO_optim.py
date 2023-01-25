@@ -51,8 +51,7 @@ def BO_basis_optim(optim_basis_param, solver, atoms_list, E0s, data_keys, weight
         "r_in" : r_in,
         "r_cut_ACE" : r_cut_ACE}
 
-        B, len_B = ace_basis.full_basis(basis_info, return_length=True)
-        print(len_B)
+        B = ace_basis.full_basis(basis_info)
 
         Psi, Y = lsq.add_lsq(B, E0s, atoms_list, data_keys, weights, data_keys.get('Fmax'))
 
