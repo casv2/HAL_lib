@@ -54,15 +54,17 @@ def BO_basis_optim(optim_basis_param, solver, atoms_list, E0s, data_keys, weight
 
         B, len_B = ace_basis.full_basis(basis_info, return_length=True) 
 
-        if len_B < max_len_B:
-            Psi, Y = lsq.add_lsq(B, E0s, atoms_list, data_keys, weights, data_keys.get('Fmax'))
+        #if len_B < max_len_B:
+        Psi, Y = lsq.add_lsq(B, E0s, atoms_list, data_keys, weights, data_keys.get('Fmax'))
 
-            solver.fit(Psi, Y)
-            score = solver.scores_[-1]
+        solver.fit(Psi, Y)
+        score = solver.scores_[-1]
 
-            return score
-        else:
-            return -1e32
+        print(len_B)
+
+        return score
+        # else:
+        #     return -1e32
 
     study = optuna.create_study(sampler=TPESampler(), direction='maximize')
     if D_prior is not None:
