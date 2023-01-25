@@ -57,7 +57,7 @@ def BO_basis_optim(optim_basis_param, solver, atoms_list, E0s, data_keys, weight
 
             return score
         else:
-            return "fail"
+            return float("-inf")
 
     study = optuna.create_study(sampler=TPESampler(), direction='maximize')
     if D_prior is not None:
