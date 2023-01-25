@@ -32,7 +32,7 @@ def BO_basis_optim(optim_basis_param, solver, atoms_list, E0s, data_keys, weight
         cor_order = trial.suggest_int('cor_order', low=2, high=4)
 
         if cor_order in max_deg_D:
-            maxdeg = trial.suggest_int('maxdeg', low=3, high=max_deg_D[cor_order])
+            maxdeg = trial.suggest_int('maxdeg', low=3, high=max_deg_D[cor_order]-1)
         else:
             maxdeg = trial.suggest_int('maxdeg', low=3, high=22)
 
