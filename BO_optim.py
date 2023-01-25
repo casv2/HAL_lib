@@ -32,7 +32,7 @@ def BO_basis_optim(optim_basis_param, solver, atoms_list, E0s, data_keys, weight
         cor_order = trial.suggest_int('cor_order', low=2, high=4)
 
         if cor_order in max_deg_D:
-            maxdeg = trial.suggest_int('maxdeg', low=3, high=max_deg_D[cor_order]-1)
+            maxdeg = trial.suggest_int('maxdeg', low=3, high=max_deg_D[cor_order])
         else:
             maxdeg = trial.suggest_int('maxdeg', low=3, high=22)
 
@@ -51,8 +51,7 @@ def BO_basis_optim(optim_basis_param, solver, atoms_list, E0s, data_keys, weight
         "r_in" : r_in,
         "r_cut_ACE" : r_cut_ACE}
 
-        B, len_B = ace_basis.full_basis(basis_info, return_length=True) 
-        print(len_B)
+        B = ace_basis.full_basis(basis_info) 
 
         Psi, Y = lsq.add_lsq(B, E0s, atoms_list, data_keys, weights, data_keys.get('Fmax'))
 
