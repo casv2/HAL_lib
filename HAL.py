@@ -122,7 +122,7 @@ def HAL(optim_basis_param, E0s, weights, run_info, atoms_list, data_keys, start_
     max_deg_D = {}
 
     for cor_order in range(2,5):
-        for deg in range(3,7):
+        for deg in range(3,14):
             basis_info["cor_order"] = cor_order
             basis_info["maxdeg"] = deg
             _, len_B = ace_basis.full_basis(basis_info, return_length=True) 
