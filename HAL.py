@@ -99,6 +99,7 @@ def HAL(optim_basis_param, E0s, weights, run_info, atoms_list, data_keys, start_
         baro_settings["mu"] = run_info["mu"]
     if run_info["thermo"] == True:
         thermo_settings["thermo"] = True
+        thermo_settings["gamma"] = run_info["gamma"]
         if type(run_info["T"]) == int or type(run_info["T"]) == float:
             thermo_settings["T"] = np.linspace(run_info["T"], run_info["T"], nsteps)
         else:
