@@ -15,11 +15,15 @@ def BO_basis_optim(optim_basis_param, solver, atoms_list, E0s, data_keys, weight
     max_deg_D = optim_basis_param["max_deg_D"]
     max_len_B = optim_basis_param["max_len_B"]
 
+
     distances_all = np.hstack([ at.get_all_distances(mic=True).flatten() for at in atoms_list])
     distances_first_shell = distances_all[ distances_all <= 3.5]
     distances_non_zero = distances_first_shell[distances_first_shell != 0.0] 
-
-    r_in = np.min(distances_non_zero)
+    
+    if "r_in" in optim_basis_param:
+        r_in = optim_basis_param["r_in"]
+    else:
+        r_in = np.min(distances_non_zero)
 
     if "r_0" in optim_basis_param:
         r_0 = optim_basis_param["r_0"]
