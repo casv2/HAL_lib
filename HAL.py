@@ -99,8 +99,10 @@ def HAL(optim_basis_param, E0s, weights, run_info, atoms_list, data_keys, start_
         baro_settings["mu"] = run_info["mu"]
     if run_info["thermo"] == True:
         thermo_settings["thermo"] = True
-        thermo_settings["T"] = run_info["T"]
-        thermo_settings["gamma"] = run_info["gamma"]
+        if type(run_info["T"]) == int or type(run_info["T"]) == float:
+            thermo_settings["T"] = np.linspace(run_info["T"], run_info["T"], nsteps)
+        else:
+            thermo_settings["T"] = np.linspace(run_info["T"][0], run_info["T"][1], nsteps)
     if run_info["swap"] == True:
         swap_settings["swap"] = True
         swap_settings["swap_step"] = run_info["swap_step"]
@@ -142,9 +144,8 @@ def HAL(optim_basis_param, E0s, weights, run_info, atoms_list, data_keys, start_
             if m % optim_basis_param["n_optim"] == 0 or m == 0:
                 D = BO_optim.BO_basis_optim(optim_basis_param, solver, atoms_list, E0s, data_keys, weights, D_prior=None)
                 B = ace_basis.full_basis(D) 
-                ACE_IP, CO_IP, atoms_list = quick_fit(B, E0s, data_keys, weights, solver, ncomms, eps, m, atoms_list, save=save)
-            else:
-                ACE_IP, CO_IP, atoms_list = quick_fit(B, E0s, data_keys, weights, solver, ncomms, eps, m, atoms_list, save=save)
+                
+            ACE_IP, CO_IP, atoms_list = quick_fit(B, E0s, data_keys, weights, solver, ncomms, eps, m, atoms_list, save=save)
             
             utils.plot_dimer(ACE_IP, optim_basis_param["elements"], E0s, m=m)
 
@@ -202,7 +203,7 @@ def run(ACE_IP, CO_IP, at, nsteps, dt, tau_rel, tol, eps, baro_settings, thermo_
 
     tau=0.0
     while running and i < nsteps:
-        at, F_bar_norms, F_bias_norms, dFn = MD.VelocityVerlet(ACE_IP, CO_IP, at, dt * fs, tau, baro_settings=baro_settings, thermo_settings=thermo_settings)
+        at, F_bar_norms, F_bias_norms, dFn = MD.VelocityVerlet(ACE_IP, CO_IP, at, dt * fs, tau, baro_settings=baro_settings, thermo_settings=thermo_settings, i=i)
 
         m_F_bar[i] = np.mean(F_bar_norms)
         m_F_bias[i] = np.mean(F_bias_norms)

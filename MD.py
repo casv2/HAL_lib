@@ -18,7 +18,7 @@ def barostat(ACE_IP, at, mu, target_pressure):
     at.set_cell(at.cell * scale, scale_atoms=True)
     return at
 
-def VelocityVerlet(ACE_IP, CO_IP, at, dt, tau, baro_settings, thermo_settings):
+def VelocityVerlet(ACE_IP, CO_IP, at, dt, tau, baro_settings, thermo_settings, i):
     if "HAL_forces" in at.arrays:
         forces = at.arrays["HAL_forces"]
     else:
@@ -29,7 +29,8 @@ def VelocityVerlet(ACE_IP, CO_IP, at, dt, tau, baro_settings, thermo_settings):
     masses = at.get_masses()[:, np.newaxis]
 
     if thermo_settings["thermo"] == True: 
-        p = random_p_update(p, masses, thermo_settings["gamma"], thermo_settings["T"] * kB, dt)
+        T = thermo_settings["T"][i] * kB
+        p = random_p_update(p, masses, thermo_settings["gamma"], T, dt)
     at.set_momenta(p, apply_constraint=False)
 
     r = at.get_positions()
