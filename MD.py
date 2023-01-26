@@ -29,8 +29,7 @@ def VelocityVerlet(ACE_IP, CO_IP, at, dt, tau, baro_settings, thermo_settings, i
     masses = at.get_masses()[:, np.newaxis]
 
     if thermo_settings["thermo"] == True: 
-        T = thermo_settings["T"][i] * kB
-        p = random_p_update(p, masses, thermo_settings["gamma"], T, dt)
+        p = random_p_update(p, masses, thermo_settings["gamma"], thermo_settings["T"][i] * kB, dt)
     at.set_momenta(p, apply_constraint=False)
 
     r = at.get_positions()
