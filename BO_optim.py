@@ -27,21 +27,33 @@ def BO_basis_optim(optim_basis_param, solver, atoms_list, E0s, data_keys, weight
         x,y = np.histogram(distances_non_zero, bins=100)
         r_0 = y[np.argmax(x)]
 
+    if "r_cut_ACE" in optim_basis_param:
+        r_cut_ACE = optim_basis_param["r_cut_ACE"]
+    else:
+        r_cut_ACE = [1.5*r_0, 2.5*r_0]
+    
+    if "r_cut_pair" in optim_basis_param:
+        r_cut_pair = optim_basis_param["r_cut_pair"]
+    else:
+        r_cut_pair = [2.0*r_0, 3.0*r_0]
+
     print("r_in {}, r_0 : {}".format(r_in, r_0))
+    print("r_cut_ACE {}".format(r_cut_ACE))
+    print("r_cut_pair {}".format(r_cut_pair))
 
     @timeout_decorator.timeout(optim_basis_param["timeout"], use_signals=True)   
 
-    def objective(trial, max_len_B=max_len_B, max_deg_D=max_deg_D):
+    def objective(trial, r_cut_ACE=r_cut_ACE, r_cut_pair=r_cut_pair, max_len_B=max_len_B, max_deg_D=max_deg_D):
 
         cor_order = trial.suggest_int('cor_order', low=2, high=4)
 
         if cor_order in max_deg_D:
             maxdeg = trial.suggest_int('maxdeg', low=3, high=max_deg_D[cor_order])
         else:
-            maxdeg = trial.suggest_int('maxdeg', low=3, high=22)
+            maxdeg = trial.suggest_int('maxdeg', low=3, high=16)
 
-        r_cut_ACE = trial.suggest_float('r_cut_ACE', low=1.5*r_0, high=2.5*r_0)
-        r_cut_pair = trial.suggest_float('r_cut_pair', low=2*r_0, high=3.0*r_0)
+        r_cut_ACE = trial.suggest_float('r_cut_ACE', low=r_cut_ACE[0], high=r_cut_ACE[1])
+        r_cut_pair = trial.suggest_float('r_cut_pair', low=r_cut_pair[0], high=r_cut_pair[1])
 
         poly_deg_pair = trial.suggest_int('poly_deg_pair', low=3, high=16)
 
