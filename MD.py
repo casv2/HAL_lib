@@ -6,7 +6,7 @@ from ase.units import GPa
 def random_p_update(p,masses,gamma,kBT,dt):
     v = p / masses
     R = np.random.standard_normal(size=(len(masses), 3))
-    c1 = np.exp(-gamma*dt)
+    c1 = np.exp(-np.reciprocal(gamma)*dt)
     c2 = np.sqrt(1-c1*c1)*np.sqrt(kBT / masses)
     v_new = c1*v + (R* c2)
     return v_new * masses
