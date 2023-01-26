@@ -80,9 +80,9 @@ def BO_basis_optim(optim_basis_param, solver, atoms_list, E0s, data_keys, weight
         if len_B > max_len_B:
             return -1e32
         else:
-            return 2*len_B - 2*score
+            return np.log(len(Y)) * len_B - 2*score
 
-    study = optuna.create_study(sampler=TPESampler(), direction='maximize')
+    study = optuna.create_study(sampler=TPESampler(), direction='minimize')
     if D_prior is not None:
         study.enqueue_trial(D_prior)
     
