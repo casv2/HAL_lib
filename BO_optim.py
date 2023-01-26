@@ -80,7 +80,7 @@ def BO_basis_optim(optim_basis_param, solver, atoms_list, E0s, data_keys, weight
         if len_B > max_len_B:
             return -1e32
         else:
-            return len_B * np.log(Psi.shape[0]) - 2*np.log(score)
+            return len_B * np.log(Psi.shape[0]) - 2*score
 
     study = optuna.create_study(sampler=TPESampler(), direction='maximize')
     if D_prior is not None:
