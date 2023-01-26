@@ -21,8 +21,11 @@ def BO_basis_optim(optim_basis_param, solver, atoms_list, E0s, data_keys, weight
 
     r_in = np.min(distances_non_zero)
 
-    x,y = np.histogram(distances_non_zero, bins=100)
-    r_0 = y[np.argmax(x)]
+    if r_0 in optim_basis_param:
+        r_0 = optim_basis_param["r_0"]
+    else:
+        x,y = np.histogram(distances_non_zero, bins=100)
+        r_0 = y[np.argmax(x)]
 
     print("r_in {}, r_0 : {}".format(r_in, r_0))
 
