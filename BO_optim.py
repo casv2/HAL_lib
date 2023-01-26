@@ -15,7 +15,6 @@ def BO_basis_optim(optim_basis_param, solver, atoms_list, E0s, data_keys, weight
     max_deg_D = optim_basis_param["max_deg_D"]
     max_len_B = optim_basis_param["max_len_B"]
 
-
     distances_all = np.hstack([ at.get_all_distances(mic=True).flatten() for at in atoms_list])
     distances_first_shell = distances_all[ distances_all <= 3.5]
     distances_non_zero = distances_first_shell[distances_first_shell != 0.0] 
@@ -54,12 +53,12 @@ def BO_basis_optim(optim_basis_param, solver, atoms_list, E0s, data_keys, weight
         if cor_order in max_deg_D:
             maxdeg = trial.suggest_int('maxdeg', low=3, high=max_deg_D[cor_order])
         else:
-            maxdeg = trial.suggest_int('maxdeg', low=3, high=16)
+            maxdeg = trial.suggest_int('maxdeg', low=3, high=12)
 
         r_cut_ACE = trial.suggest_float('r_cut_ACE', low=r_cut_ACE[0], high=r_cut_ACE[1])
         r_cut_pair = trial.suggest_float('r_cut_pair', low=r_cut_pair[0], high=r_cut_pair[1])
 
-        poly_deg_pair = trial.suggest_int('poly_deg_pair', low=3, high=16)
+        poly_deg_pair = trial.suggest_int('poly_deg_pair', low=3, high=12)
 
         basis_info = {
         "elements" : elements, 
@@ -81,7 +80,7 @@ def BO_basis_optim(optim_basis_param, solver, atoms_list, E0s, data_keys, weight
         if len_B > max_len_B:
             return -1e32
         else:
-            return score
+            return len_B * np.log(Psi.shape[0]) - 2*np.log(score)
 
     study = optuna.create_study(sampler=TPESampler(), direction='maximize')
     if D_prior is not None:
