@@ -75,12 +75,15 @@ def BO_basis_optim(optim_basis_param, solver, atoms_list, E0s, data_keys, weight
         Psi, Y = lsq.add_lsq(B, E0s, atoms_list, data_keys, weights, data_keys.get('Fmax'))
 
         solver.fit(Psi, Y)
-        score = solver.scores_[-1]
+        c = solver.coef_
+        #score = solver.scores_[-1]
 
         if len_B > max_len_B:
             return -1e32
         else:
-            return np.log(len(Y)) * len_B - 2*score
+            k = ((2 * len(c)) + 2)
+            return np.log(np.sum(np.power(Psi @ c - Y, 2)) / len(Y)) + (k/len(Y)) * np.log(len(Y))
+            #return np.log(len(Y)) * len_B - 2*score
 
     study = optuna.create_study(sampler=TPESampler(), direction='minimize')
     if D_prior is not None:
