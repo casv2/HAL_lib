@@ -142,9 +142,9 @@ def HAL(optim_basis_param, E0s, weights, run_info, atoms_list, data_keys, start_
             current_config = deepcopy(start_config)
             m = j*niters + i
 
-            if m % optim_basis_param["n_optim"] == 0 or m == 0:
-                D = BO_optim.BO_basis_optim(optim_basis_param, solver, atoms_list, E0s, data_keys, weights, D_prior=None)
-                B = ace_basis.full_basis(D) 
+            #if m % optim_basis_param["n_optim"] == 0 or m == 0:
+            D = BO_optim.BO_basis_optim(optim_basis_param, solver, atoms_list, E0s, data_keys, weights, D_prior=None)
+            B = ace_basis.full_basis(D) 
                 
             ACE_IP, CO_IP, atoms_list = quick_fit(B, E0s, data_keys, weights, solver, ncomms, eps, m, atoms_list, save=save)
             
