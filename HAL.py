@@ -164,20 +164,27 @@ def HAL(optim_basis_param, E0s, weights, run_info, atoms_list, data_keys, start_
             del at.arrays["HAL_forces"]
 
             if calculator != None:
-                at.calc = calculator
-                at.info[data_keys["E"]] = at.get_potential_energy()
-                at.arrays[data_keys["F"]] = at.get_forces()
                 try:
+                    at.calc = calculator
+                    at.info[data_keys["E"]] = at.get_potential_energy()
+                    at.arrays[data_keys["F"]] = at.get_forces()
                     at.info[data_keys["V"]] = -1.0 * at.get_volume() * at.get_stress(voigt=False)
+
+                    print("TIMING reference calculation", time.time() - t0)
+                    t0 = time.time()
+
+                    at.info["config_type"] = "HAL_" + at.info["config_type"]
+                    write(f"HAL_it{m}.extxyz", at)
+                    atoms_list += [at]
                 except:
                     pass
 
-            print("TIMING reference calculation", time.time() - t0)
-            t0 = time.time()
+            # print("TIMING reference calculation", time.time() - t0)
+            # t0 = time.time()
 
-            at.info["config_type"] = "HAL_" + at.info["config_type"]
-            write(f"HAL_it{m}.extxyz", at)
-            atoms_list += [at]
+            # at.info["config_type"] = "HAL_" + at.info["config_type"]
+            # write(f"HAL_it{m}.extxyz", at)
+            # atoms_list += [at]
 
     return atoms_list
 
