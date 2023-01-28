@@ -61,6 +61,34 @@ def full_basis(basis_info, return_length=False):
     else:
         return Main.B
 
+def pair_basis(basis_info, return_length=False):
+    Main.elements = basis_info["elements"]
+    Main.poly_deg_pair = basis_info["poly_deg_pair"]
+    Main.r_0 = basis_info["r_0"]
+    Main.r_cut_pair = basis_info["r_cut_pair"]
+
+    Main.eval("""
+            using ACE1: transformed_jacobi, transformed_jacobi_env
+
+            trans_r = AgnesiTransform(; r0=r_0, p = 2)
+
+            pair = pair_basis(species = Symbol.(elements),
+                   r0 = r_0,
+                   maxdeg = poly_deg_pair,
+                   rcut = r_cut_pair,
+                   rin = 0.0,
+                   pin = 0 )
+
+            B = pair
+
+            basis_length = length(B)
+            """)
+
+    if return_length == True:
+        return Main.B, Main.basis_length
+    else:
+        return Main.B
+
 def combine(B, c, E0s, comms):
     Main.E0s = E0s
     Main.ref_pot = Main.eval("refpot = OneBody(" + "".join([" :{} => {}, ".format(key, value) for key, value in E0s.items()]) + ")")

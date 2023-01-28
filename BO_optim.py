@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 from HAL_lib import lsq
 from HAL_lib import ace_basis
 
-def BO_basis_optim(optim_basis_param, solver, atoms_list, E0s, data_keys, weights, D_prior=None):#, D_max_B=None):
+def BO_basis_optim(optim_basis_param, solver, atoms_list, E0s, data_keys, weights, dimer_data=None, D_prior=None):#, D_max_B=None):
     elements = optim_basis_param["elements"]
     max_deg_D = optim_basis_param["max_deg_D"]
     max_len_B = optim_basis_param["max_len_B"]
@@ -70,15 +70,33 @@ def BO_basis_optim(optim_basis_param, solver, atoms_list, E0s, data_keys, weight
         "r_in" : r_in,
         "r_cut_ACE" : r_cut_ACE}
 
-        B, len_B = ace_basis.full_basis(basis_info, return_length=True)
+        if dimer_data is None:
+            B_ace, len_B_ace = ace_basis.full_basis(basis_info, return_length=True)
+            Psi, Y = lsq.add_lsq(B_ace, E0s, atoms_list, data_keys, weights, data_keys.get('Fmax'))
 
-        Psi, Y = lsq.add_lsq(B, E0s, atoms_list, data_keys, weights, data_keys.get('Fmax'))
+            solver.fit(Psi, Y)
+            c = solver.coef_
+        else:
+            B_pair, len_B_pair = ace_basis.pair_basis(basis_info, return_length=True)
 
-        solver.fit(Psi, Y)
-        c = solver.coef_
-        #score = solver.scores_[-1]
+            Psi_pair, Y_pair = lsq.add_lsq(B_pair, E0s, dimer_data, data_keys, weights, data_keys.get('Fmax'))
 
-        if len_B > max_len_B:
+            print("Y_pair ", Y_pair)
+            solver.fit(Psi_pair, Y_pair)
+            c_prior = solver.coef_
+            print("c_prior ", c_prior)
+        
+            B_ace, len_B_ace = ace_basis.full_basis(basis_info, return_length=True)
+            Psi, Y = lsq.add_lsq(B_ace, E0s, atoms_list, data_keys, weights, data_keys.get('Fmax'))
+            
+            c_prior_full = np.pad(c_prior, (0, (len_B_ace - len_B_pair)))
+            Y_sub = Y - (Psi @ c_prior_full)
+
+            solver.fit(Psi, Y_sub)
+            c = solver.coef_ + c_prior_full
+            print("c ", c)
+
+        if len_B_ace > max_len_B:
             return -1e32
         else:
             k = ((2 * len(c)) + 2)
