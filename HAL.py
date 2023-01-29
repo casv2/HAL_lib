@@ -87,6 +87,8 @@ def quick_fit_dimer(D, E0s, data_keys, weights, solver, ncomms, eps, iter_i, ato
     solver.fit(Psi_pair, Y_pair)
     c_prior = solver.coef_
 
+    print("c_prior: ", c_prior)
+
     B_ace, len_B_ace = ace_basis.full_basis(D, return_length=True)
     Psi, Y = lsq.add_lsq(B_ace, E0s, atoms_list, data_keys, weights, data_keys.get('Fmax'))
     
@@ -150,7 +152,7 @@ def HAL(optim_basis_param, E0s, weights, run_info, atoms_list, data_keys, start_
 
     basis_info = {
         "elements" : optim_basis_param["elements"],     
-        "poly_deg_pair" : 14,
+        "poly_deg_pair" : 12,
         "r_cut_pair" : 7.0,
         "r_0" : 2.5,
         "r_in" : 1.8,
@@ -159,7 +161,7 @@ def HAL(optim_basis_param, E0s, weights, run_info, atoms_list, data_keys, start_
     max_deg_D = {}
 
     for cor_order in range(2,5):
-        for deg in range(3,22):
+        for deg in range(3,12):
             basis_info["cor_order"] = cor_order
             basis_info["maxdeg"] = deg
             _, len_B = ace_basis.full_basis(basis_info, return_length=True) 
