@@ -81,10 +81,8 @@ def BO_basis_optim(optim_basis_param, solver, atoms_list, E0s, data_keys, weight
 
             Psi_pair, Y_pair = lsq.add_lsq(B_pair, E0s, dimer_data, data_keys, weights, data_keys.get('Fmax'))
 
-            print("Y_pair ", Y_pair)
             solver.fit(Psi_pair, Y_pair)
             c_prior = solver.coef_
-            print("c_prior ", c_prior)
         
             B_ace, len_B_ace = ace_basis.full_basis(basis_info, return_length=True)
             Psi, Y = lsq.add_lsq(B_ace, E0s, atoms_list, data_keys, weights, data_keys.get('Fmax'))
@@ -94,7 +92,6 @@ def BO_basis_optim(optim_basis_param, solver, atoms_list, E0s, data_keys, weight
 
             solver.fit(Psi, Y_sub)
             c = solver.coef_ + c_prior_full
-            print("c ", c)
 
         if len_B_ace > max_len_B:
             return -1e32

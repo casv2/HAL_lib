@@ -54,15 +54,16 @@ def add_and_fit(B, E0s, data_keys, weights, solver, ncomms, eps, iter_i, new_con
 
     return ACE_IP, CO_IP, atoms_list, Psi, Y
 
-def quick_fit(B, E0s, data_keys, weights, solver, ncomms, eps, iter_i, atoms_list, mvn_hermitian=True, save=True):
-    Psi, Y = lsq.add_lsq(B, E0s, atoms_list, data_keys, weights, data_keys.get('Fmax'))
+def quick_fit(D, E0s, data_keys, weights, solver, ncomms, eps, iter_i, atoms_list, save=True):
+    B_ace = ace_basis.full_basis(D)
+    Psi, Y = lsq.add_lsq(B_ace, E0s, atoms_list, data_keys, weights, data_keys.get('Fmax'))
 
     if save:
         np.save(f"Psi_it{iter_i}.npy", Psi)
         np.save(f"Y_it{iter_i}.npy", Y)
 
     t0 = time.time()
-    ACE_IP, CO_IP = lsq.fit(Psi, Y, B, E0s, solver, ncomms=ncomms, mvn_hermitian=mvn_hermitian)
+    ACE_IP, CO_IP = lsq.fit(Psi, Y, B_ace, E0s, solver, ncomms=ncomms)
     print("TIMING fit", time.time() - t0)
     t0 = time.time()
 
@@ -76,6 +77,38 @@ def quick_fit(B, E0s, data_keys, weights, solver, ncomms, eps, iter_i, atoms_lis
     sys.stdout.flush()
 
     return ACE_IP, CO_IP, atoms_list
+
+def quick_fit_dimer(D, E0s, data_keys, weights, solver, ncomms, eps, iter_i, atoms_list, dimer_data=None):
+    B_pair, len_B_pair = ace_basis.pair_basis(D, return_length=True)
+
+    Psi_pair, Y_pair = lsq.add_lsq(B_pair, E0s, dimer_data, data_keys, weights, data_keys.get('Fmax'))
+
+    #print("Y_pair ", Y_pair)
+    solver.fit(Psi_pair, Y_pair)
+    c_prior = solver.coef_
+
+    B_ace, len_B_ace = ace_basis.full_basis(D, return_length=True)
+    Psi, Y = lsq.add_lsq(B_ace, E0s, atoms_list, data_keys, weights, data_keys.get('Fmax'))
+    
+    c_prior_full = np.pad(c_prior, (0, (len_B_ace - len_B_pair)))
+
+    Y_sub = Y - (Psi @ c_prior_full)
+
+    t0 = time.time()
+    ACE_IP, CO_IP = lsq.fit(Psi, Y_sub, B_ace, E0s, solver, ncomms=ncomms, c_prior_full=c_prior_full)
+    print("TIMING fit", time.time() - t0)
+    t0 = time.time()
+
+    utils.save_pot(f"HAL_it{iter_i}.json")
+
+    t0 = time.time()
+    errors.print_errors(ACE_IP, atoms_list, data_keys, CO_IP, eps)
+    print("TIMING errors", time.time() - t0)
+    t0 = time.time()
+
+    sys.stdout.flush()
+
+    return ACE_IP, CO_IP
 
 def HAL(optim_basis_param, E0s, weights, run_info, atoms_list, data_keys, start_configs, solver, dimer_data=None, calculator=None, save=False): #calculator
     niters = run_info["niters"]
@@ -111,9 +144,13 @@ def HAL(optim_basis_param, E0s, weights, run_info, atoms_list, data_keys, start_
         vol_settings["vol"] = True
         vol_settings["vol_step"] = run_info["vol_step"]
   
+    if dimer_data is not None:
+        print("FITTING DIMER DATA: SETTING FMAX TO 1E32...")
+        data_keys["Fmax"] = 1e32
+
     basis_info = {
         "elements" : optim_basis_param["elements"],     
-        "poly_deg_pair" : 22,
+        "poly_deg_pair" : 14,
         "r_cut_pair" : 7.0,
         "r_0" : 2.5,
         "r_in" : 1.8,
@@ -122,7 +159,7 @@ def HAL(optim_basis_param, E0s, weights, run_info, atoms_list, data_keys, start_
     max_deg_D = {}
 
     for cor_order in range(2,5):
-        for deg in range(3,14):
+        for deg in range(3,22):
             basis_info["cor_order"] = cor_order
             basis_info["maxdeg"] = deg
             _, len_B = ace_basis.full_basis(basis_info, return_length=True) 
@@ -144,11 +181,14 @@ def HAL(optim_basis_param, E0s, weights, run_info, atoms_list, data_keys, start_
 
             #if m % optim_basis_param["n_optim"] == 0 or m == 0:
             D = BO_optim.BO_basis_optim(optim_basis_param, solver, atoms_list, E0s, data_keys, weights, dimer_data, D_prior=None)
-            B = ace_basis.full_basis(D) 
+            #B = ace_basis.full_basis(D) 
                 
-            ACE_IP, CO_IP, atoms_list = quick_fit(B, E0s, data_keys, weights, solver, ncomms, eps, m, atoms_list, save=save)
-            
-            utils.plot_dimer(ACE_IP, optim_basis_param["elements"], E0s, m=m)
+            if dimer_data == None:
+                ACE_IP, CO_IP, atoms_list = quick_fit(D, E0s, data_keys, weights, solver, ncomms, eps, m, atoms_list, save=save)
+            else:
+                ACE_IP, CO_IP = quick_fit_dimer(D, E0s, data_keys, weights, solver, ncomms, eps, m, atoms_list, dimer_data=dimer_data)
+
+            utils.plot_dimer(ACE_IP, optim_basis_param["elements"], E0s, m=m, dimer_data=dimer_data)
 
             t0 = time.time()
             E_tot, E_kin, E_pot, T_s, P_s, f_s, at = run(ACE_IP, CO_IP, current_config, nsteps, dt, tau_rel, tol, eps,
@@ -164,12 +204,13 @@ def HAL(optim_basis_param, E0s, weights, run_info, atoms_list, data_keys, start_
             del at.arrays["HAL_forces"]
 
             if calculator != None:
-                at.calc = calculator
-                at.info[data_keys["E"]] = at.get_potential_energy()
-                at.arrays[data_keys["F"]] = at.get_forces()
                 try:
+                    at.calc = calculator
+                    at.info[data_keys["E"]] = at.get_potential_energy()
+                    at.arrays[data_keys["F"]] = at.get_forces()
                     at.info[data_keys["V"]] = -1.0 * at.get_volume() * at.get_stress(voigt=False)
                 except:
+                    print("DFT CALCULATION FAILED!!")
                     pass
 
             print("TIMING reference calculation", time.time() - t0)

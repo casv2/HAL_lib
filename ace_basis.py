@@ -37,19 +37,23 @@ def full_basis(basis_info, return_length=False):
                                        order=cor_order, 
                                        delete2b = true)
 
-            trans_r = AgnesiTransform(; r0=r_0, p = 2)
-
+            ######
             pair = pair_basis(species = Symbol.(elements),
                    r0 = r_0,
-                   trans=trans,
+                   trans= PolyTransform(1, r_0),
                    maxdeg = poly_deg_pair,
                    rcut = r_cut_pair,
                    rin = 0.0,
                    pin = 0 )
+            #######
 
-            # envelope_r = ACE1.PolyEnvelope(2, r_in - 0.05, r_cut_pair)
+            #####
+            # trans_r = AgnesiTransform(; r0=r_0, p = 2)
+
+            # envelope_r = ACE1.PolyEnvelope(2, 1.0, r_cut_pair)
             # Jnew = transformed_jacobi_env(poly_deg_pair, trans_r, envelope_r, r_cut_pair)
             # pair = PolyPairBasis(Jnew, Symbol.(elements))
+            #####
 
             B = JuLIP.MLIPs.IPSuperBasis([pair, rpibasis]);
 
@@ -70,15 +74,25 @@ def pair_basis(basis_info, return_length=False):
     Main.eval("""
             using ACE1: transformed_jacobi, transformed_jacobi_env
 
-            trans_r = AgnesiTransform(; r0=r_0, p = 2)
-
+            ######
             pair = pair_basis(species = Symbol.(elements),
                    r0 = r_0,
+                   trans= PolyTransform(1, r_0),
                    maxdeg = poly_deg_pair,
                    rcut = r_cut_pair,
                    rin = 0.0,
                    pin = 0 )
+            #######
 
+
+            ####
+            # trans_r = AgnesiTransform(; r0=r_0, p = 2)
+
+            # envelope_r = ACE1.PolyEnvelope(2, 1.0, r_cut_pair)
+            # Jnew = transformed_jacobi_env(poly_deg_pair, trans_r, envelope_r, r_cut_pair)
+            # pair = PolyPairBasis(Jnew, Symbol.(elements))
+            #####
+        
             B = pair
 
             basis_length = length(B)
