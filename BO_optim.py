@@ -96,8 +96,9 @@ def BO_basis_optim(optim_basis_param, solver, atoms_list, E0s, data_keys, weight
         if len_B_ace > max_len_B:
             return -1e32
         else:
-            k = ((2 * len(c)) + 2)
-            return np.log(np.sum(np.power(Psi @ c - Y, 2)) / len(Y)) + (k/len(Y)) * np.log(len(Y))
+            #k = ((2 * len(c)) + 2)
+            #return np.log(np.sum(np.power(Psi @ c - Y, 2)) / len(Y)) + (k/len(Y)) * np.log(len(Y))
+            return len(Y)*np.log(np.sum(np.power(Psi @ c - Y, 2)) + 2*len(c)
             #return np.log(len(Y)) * len_B - 2*score
 
     study = optuna.create_study(sampler=TPESampler(), direction='minimize')
