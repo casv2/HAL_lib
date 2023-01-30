@@ -37,7 +37,7 @@ def full_basis(basis_info, return_length=False):
                                        order=cor_order, 
                                        delete2b = true)
 
-            trans_r = AgnesiTransform(; r0=r_0, p = 2)
+            trans_r = AgnesiTransform(; r0=r_0, p = 4)
 
             # pair = pair_basis(species = Symbol.(elements),
             #        r0 = r_0,
@@ -47,7 +47,7 @@ def full_basis(basis_info, return_length=False):
             #        rin = 0.0,
             #        pin = 0 )
 
-            envelope_r = ACE1.PolyEnvelope(2, r_in - 0.05, r_cut_pair)
+            envelope_r = ACE1.PolyEnvelope(2, r_in, r_cut_pair)
             Jnew = transformed_jacobi_env(poly_deg_pair, trans_r, envelope_r, r_cut_pair)
             pair = PolyPairBasis(Jnew, Symbol.(elements))
 
