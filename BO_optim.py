@@ -79,7 +79,7 @@ def BO_basis_optim(optim_basis_param, solver, atoms_list, E0s, data_keys, weight
         #score = solver.scores_[-1]
 
         if len_B > max_len_B:
-            return -1e32
+            return +1e32
         else:
             #return len(Y)*np.log(np.sum(np.power(Psi @ c - Y, 2))) + 2*len(c)
             k = ((2 * len(c)) + 2)
