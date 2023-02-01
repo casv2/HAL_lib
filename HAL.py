@@ -18,6 +18,7 @@ from ase.units import kB
 from ase.units import GPa
 
 import matplotlib.pyplot as plt
+from sklearn.feature_selection import mutual_info_regression
 
 def add_and_fit(B, E0s, data_keys, weights, solver, ncomms, eps, iter_i, new_configs, atoms_list=None, Psi=None, Y=None, mvn_hermitian=True, save=True):
     #assert sum([atoms_list is None, Psi is None, Y is None]) in [0, 3]
@@ -56,6 +57,10 @@ def add_and_fit(B, E0s, data_keys, weights, solver, ncomms, eps, iter_i, new_con
 
 def quick_fit(B, E0s, data_keys, weights, solver, ncomms, eps, iter_i, atoms_list, mvn_hermitian=True, save=True):
     Psi, Y = lsq.add_lsq(B, E0s, atoms_list, data_keys, weights, data_keys.get('Fmax'))
+
+    eMI = np.mean(mutual_info_regression(Psi, Y))
+
+    print("eMI: {}".format(eMI))
 
     if save:
         np.save(f"Psi_it{iter_i}.npy", Psi)
@@ -113,7 +118,7 @@ def HAL(optim_basis_param, E0s, weights, run_info, atoms_list, data_keys, start_
   
     basis_info = {
         "elements" : optim_basis_param["elements"],     
-        "poly_deg_pair" : 12,
+        "poly_deg_pair" : 8,
         "r_cut_pair" : 7.0,
         "r_0" : 2.5,
         "r_in" : 1.8,
@@ -122,7 +127,7 @@ def HAL(optim_basis_param, E0s, weights, run_info, atoms_list, data_keys, start_
     max_deg_D = {}
 
     for cor_order in range(2,5):
-        for deg in range(3,12):
+        for deg in range(3,8):
             basis_info["cor_order"] = cor_order
             basis_info["maxdeg"] = deg
             _, len_B = ace_basis.full_basis(basis_info, return_length=True) 

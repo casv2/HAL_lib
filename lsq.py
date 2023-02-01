@@ -7,7 +7,6 @@ from HAL_lib import ace_basis
 Main.eval("using ASE, JuLIP, ACE1")
 
 import numpy as np
-from .multivariate_normal import multivariate_normal as multivariate_normal_hermitian
 
 from ase.atoms import Atoms
 

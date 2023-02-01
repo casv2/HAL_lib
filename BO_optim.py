@@ -53,12 +53,12 @@ def BO_basis_optim(optim_basis_param, solver, atoms_list, E0s, data_keys, weight
         if cor_order in max_deg_D:
             maxdeg = trial.suggest_int('maxdeg', low=3, high=max_deg_D[cor_order])
         else:
-            maxdeg = trial.suggest_int('maxdeg', low=3, high=12)
+            maxdeg = trial.suggest_int('maxdeg', low=3, high=8)
 
         r_cut_ACE = trial.suggest_float('r_cut_ACE', low=r_cut_ACE[0], high=r_cut_ACE[1])
         r_cut_pair = trial.suggest_float('r_cut_pair', low=r_cut_pair[0], high=r_cut_pair[1])
 
-        poly_deg_pair = trial.suggest_int('poly_deg_pair', low=3, high=12)
+        poly_deg_pair = trial.suggest_int('poly_deg_pair', low=3, high=8)
 
         basis_info = {
         "elements" : elements, 
