@@ -31,7 +31,7 @@ def BO_basis_optim(optim_basis_param, solver, atoms_list, E0s, data_keys, weight
                      d = all_distances[(el2, el1)]
                 
                 r_min = np.min(d)
-                x,y = np.histogram(d, bins=100)
+                x,y = np.histogram(d, bins=20)
                 r_0 = y[argrelextrema(x, np.greater)[0][0]]
 
                 transform_dict[(el1, el2)] = {}
