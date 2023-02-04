@@ -6,6 +6,7 @@ from optuna.study import MaxTrialsCallback
 from optuna.trial import TrialState
 import numpy as np
 import matplotlib.pyplot as plt
+from scipy.signal import argrelextrema
 
 from HAL_lib import lsq
 from HAL_lib import ace_basis
@@ -28,12 +29,10 @@ def BO_basis_optim(optim_basis_param, solver, atoms_list, E0s, data_keys, weight
                     d = all_distances[(el1, el2)]
                 except:
                      d = all_distances[(el2, el1)]
-
-                d = d[d <= 3.5]
-
+                
                 r_min = np.min(d)
                 x,y = np.histogram(d, bins=100)
-                r_0 = y[np.argmax(x)]
+                r_0 = y[argrelextrema(x, np.greater)[0][0]]
 
                 transform_dict[(el1, el2)] = {}
                 transform_dict[(el1, el2)]["r_min"] = r_min
@@ -44,7 +43,7 @@ def BO_basis_optim(optim_basis_param, solver, atoms_list, E0s, data_keys, weight
     r_0_av = np.mean(r_0s)
     r_in_min = np.min(r_mins)
 
-    r_cut = [1.5*r_0_av, 3.0*r_0_av]
+    r_cut = [4.5, 8.0]
 
     print("transform dict: ", transform_dict)
 
