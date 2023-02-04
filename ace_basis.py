@@ -2,7 +2,7 @@
 from julia.api import Julia
 jl = Julia(compiled_modules=False)
 from julia import Main
-Main.eval("using ASE, JuLIP, ACE1, ACE1x")
+Main.eval("using ASE, JuLIP, ACE1")
 
 from HAL_lib import ACEcalculator
 from HAL_lib import COcalculator
@@ -11,44 +11,43 @@ def full_basis(basis_info, return_length=False):
     Main.elements = basis_info["elements"]
     Main.cor_order = basis_info["cor_order"]
     Main.maxdeg = basis_info["maxdeg"]
-    Main.poly_deg_pair = basis_info["poly_deg_pair"]
-    Main.r_0 = basis_info["r_0"]
-    Main.r_in = basis_info["r_in"]
-    Main.r_cut_ACE = basis_info["r_cut_ACE"]
-    Main.r_cut_pair = basis_info["r_cut_pair"]
+    #Main.poly_deg_pair = basis_info["poly_deg_pair"]
+    Main.r_0_av = basis_info["r_0_av"]
+    Main.r_in_min = basis_info["r_in_min"]
+    if "transform_dict" in basis_info:
+        Main.transform_dict = basis_info["transform_dict"]
+    else:
+        Main.transform_dict = {}
+    Main.r_cut = basis_info["r_cut"]
 
     Main.eval("""
             using ACE1: transformed_jacobi, transformed_jacobi_env
+            using ACE1.Transforms: multitransform, transform, transform_d
 
-            pin = 2
-            pcut = 2
-            ninc = (pcut + pin) * (cor_order-1)
-            maxn = maxdeg + ninc 
+            transforms = Dict()
+            cutoffs = Dict()
 
-            trans = PolyTransform(1, r_0)
-            Pr = transformed_jacobi(maxn, trans, r_cut_ACE, r_in; pcut = pin, pin = pin)
-            
-            D = ACE1.RPI.SparsePSHDegree()
+            if length(keys(transform_dict)) == 0
+                trans = PolyTransform(1, r_0_av)
+                Pr = transformed_jacobi(maxdeg, trans, r_cut, r_in_min; pcut = 2, pin = 2)
+            else
+                for d in keys(transform_dict)
+                    transforms[Symbol.(d)] = PolyTransform(2, transform_dict[d]["r_0"])
+                    cutoffs[Symbol.(d)] = (transform_dict[d]["r_min"], r_cut) 
+                end
 
-            rpibasis = ACE1x.Pure2b.pure2b_basis(species = AtomicNumber.(Symbol.(elements)),
-                                       Rn=Pr, 
-                                       D=D,
-                                       maxdeg=maxdeg, 
-                                       order=cor_order, 
-                                       delete2b = true)
+                ace_transform = multitransform(transforms, cutoffs=cutoffs)
+                Pr = transformed_jacobi(maxdeg, ace_transform; pcut = 2, pin=2)
+            end
 
-            trans_r = AgnesiTransform(; r0=r_0, p = 2)
+            D = SparsePSHDegree()
+            P1 = BasicPSH1pBasis(Pr; species = Symbol.(elements), D = D)
+            pibasis = PIBasis(P1, cor_order, D, maxdeg)
+            rpibasis = RPIBasis(P1, cor_order, D, maxdeg);
 
-            # pair = pair_basis(species = Symbol.(elements),
-            #        r0 = r_0,
-            #        trans=trans,
-            #        maxdeg = poly_deg_pair,
-            #        rcut = r_cut_pair,
-            #        rin = 0.0,
-            #        pin = 0 )
-
-            envelope_r = ACE1.PolyEnvelope(2, r_in, r_cut_pair)
-            Jnew = transformed_jacobi_env(poly_deg_pair, trans_r, envelope_r, r_cut_pair)
+            pair_transform =  AgnesiTransform(; r0=r_0_av, p = 2)
+            envelope_r = ACE1.PolyEnvelope(2, r_in_min, r_cut)
+            Jnew = transformed_jacobi_env(maxdeg, pair_transform, envelope_r, r_cut)
             pair = PolyPairBasis(Jnew, Symbol.(elements))
 
             B = JuLIP.MLIPs.IPSuperBasis([pair, rpibasis]);

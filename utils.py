@@ -1,3 +1,4 @@
+import re
 import ase
 import numpy as np
 import matplotlib.pyplot as plt
@@ -36,3 +37,47 @@ def plot_dimer(IP, elements, E0s, R = np.linspace(0.1, 8.0, 100), m=0, save=True
     plt.tight_layout()
     if save:
         plt.savefig("dimer_{}.pdf".format(m))
+
+def get_pair_dists(all_dists, at_nos, atno1, atno2):
+    dists = []
+    for i in range(len(all_dists[at_nos==atno1])):
+        dists.append(np.array(all_dists[at_nos==atno1][i][at_nos==atno2]))
+
+    dists = np.array(dists)
+    if atno1==atno2:
+        dists = np.triu(dists)
+        dists = dists[dists!=0]
+    else:
+        dists = dists.flatten()
+    return dists
+
+
+def distances_dict(at_list):
+    dist_hist = {}
+    for at in at_list:
+        all_dists = at.get_all_distances(mic=True)
+
+        at_nos = at.get_atomic_numbers()
+        at_syms = np.array(at.get_chemical_symbols())
+
+        formula = at.get_chemical_formula()
+        unique_symbs = natural_sort(list(ase.formula.Formula(formula).count().keys()))
+        for idx1, sym1 in enumerate(unique_symbs):
+            for idx2, sym2 in enumerate(unique_symbs[idx1:]):
+                label = (sym1,sym2)
+
+                atno1 = at_nos[at_syms == sym1][0]
+                atno2 = at_nos[at_syms == sym2][0]
+
+                if label not in dist_hist.keys():
+                    dist_hist[label] = np.array([])
+
+                distances = get_pair_dists(all_dists, at_nos, atno1, atno2)
+                dist_hist[label] = np.concatenate([dist_hist[label], distances])
+    return dist_hist
+
+
+def natural_sort(l):
+    convert = lambda text: int(text) if text.isdigit() else text.lower()
+    alphanum_key = lambda key: [convert(c) for c in re.split('([0-9]+)', key)]
+    return sorted(l, key=alphanum_key)

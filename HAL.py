@@ -118,11 +118,9 @@ def HAL(optim_basis_param, E0s, weights, run_info, atoms_list, data_keys, start_
   
     basis_info = {
         "elements" : optim_basis_param["elements"],     
-        "poly_deg_pair" : 10,
-        "r_cut_pair" : 7.0,
-        "r_0" : 2.5,
-        "r_in" : 1.8,
-        "r_cut_ACE" : 5.0}
+        "r_cut" : 7.0,
+        "r_0_av" : 2.5,
+        "r_in_min" : 1.8}
 
     max_deg_D = {}
 
