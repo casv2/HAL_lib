@@ -84,11 +84,16 @@ def BO_basis_optim(optim_basis_param, solver, atoms_list, E0s, data_keys, weight
         #score = solver.scores_[-1]
 
         if len_B > max_len_B:
-            return +1e32
-        else:
-            #return len(Y)*np.log(np.sum(np.power(Psi @ c - Y, 2))) + 2*len(c)
+            raise Exception("basis too large!")
+        elif optim_basis_param["IC"] == "BIC":
             k = ((2 * len(c)) + 2)
             return np.log(np.sum(np.power(Psi @ c - Y, 2)) / len(Y)) + (k/len(Y)) * np.log(len(Y))
+        elif optim_basis_param["IC"] == "AIC":
+            k, n= len(c), len(Y)
+            return 2*k + (n * np.log(np.sum(np.power(Psi @ c - Y, 2))))
+        elif optim_basis_param["IC"] == "AICc":
+            k, n= len(c), len(Y)
+            return 2*k + (n * np.log(np.sum(np.power(Psi @ c - Y, 2)))) + (2 * (k**2) + (2 * k)) / (n - k - 1)
             
             #return np.log(len(Y)) * len_B - 2*score
 

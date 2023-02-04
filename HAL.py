@@ -115,6 +115,11 @@ def HAL(optim_basis_param, E0s, weights, run_info, atoms_list, data_keys, start_
     if run_info["vol"] == True:
         vol_settings["vol"] = True
         vol_settings["vol_step"] = run_info["vol_step"]
+
+    if "IC" not in optim_basis_param:
+        optim_basis_param["IC"] = "BIC"
+    
+    print("using IC: {}".format(optim_basis_param["IC"]))
   
     basis_info = {
         "elements" : optim_basis_param["elements"],     
