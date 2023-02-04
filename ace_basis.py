@@ -2,7 +2,7 @@
 from julia.api import Julia
 jl = Julia(compiled_modules=False)
 from julia import Main
-Main.eval("using ASE, JuLIP, ACE1")
+Main.eval("using ASE, JuLIP, ACE1, ACE1x")
 
 from HAL_lib import ACEcalculator
 from HAL_lib import COcalculator
