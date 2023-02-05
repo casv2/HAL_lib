@@ -17,39 +17,22 @@ def BO_basis_optim(optim_basis_param, solver, atoms_list, E0s, data_keys, weight
     max_deg_D = optim_basis_param["max_deg_D"]
     max_len_B = optim_basis_param["max_len_B"]
 
-    all_distances = utils.distances_dict(atoms_list)
-    transform_dict = {}
+    distances_all = np.hstack([ at.get_all_distances(mic=True).flatten() for at in atoms_list])
+    distances_first_shell = distances_all[ distances_all <= 3.5]
+    distances_non_zero = distances_first_shell[distances_first_shell != 0.0] 
+    
+    r_in_min = np.min(distances_non_zero)
 
-    r_0s, r_mins = [], []
-
-    for (i,el1) in enumerate(elements):
-        for (j,el2) in enumerate(elements):
-            if i >= j:
-                try:
-                    d = all_distances[(el1, el2)]
-                except:
-                     d = all_distances[(el2, el1)]
-                
-                r_min = np.min(d)
-                x,y = np.histogram(d, bins=50)
-                r_0 = y[argrelextrema(x, np.greater)[0][0]]
-
-                transform_dict[(el1, el2)] = {}
-                transform_dict[(el1, el2)]["r_min"] = r_min
-                transform_dict[(el1, el2)]["r_0"] = r_0
-                r_0s.append(r_0)
-                r_mins.append(r_min)
-
-    r_0_av = np.mean(r_0s)
-    r_in_min = np.min(r_mins)
+    x,y = np.histogram(distances_non_zero, bins=100)
+    r_0_av = y[np.argmax(x)]
 
     r_cut = [4.5, 8.0]
 
-    print("transform dict: ", transform_dict)
+    print("r_in {}, r_0 : {}".format(r_in_min, r_0_av))
 
     @timeout_decorator.timeout(optim_basis_param["timeout"], use_signals=True)   
 
-    def objective(trial, transform_dict=transform_dict, 
+    def objective(trial,
                         r_cut = r_cut,
                         r_0_av=r_0_av, 
                         r_in_min=r_in_min,
@@ -69,7 +52,6 @@ def BO_basis_optim(optim_basis_param, solver, atoms_list, E0s, data_keys, weight
         "elements" : elements, 
         "cor_order" : cor_order,          
         "maxdeg" : maxdeg,
-        "transform_dict" : transform_dict,
         "r_0_av" : r_0_av,
         "r_in_min" : r_in_min,
         "r_cut" : r_cut }
