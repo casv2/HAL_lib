@@ -11,25 +11,49 @@ def full_basis(basis_info, return_length=False):
     Main.elements = basis_info["elements"]
     Main.cor_order = basis_info["cor_order"]
     Main.maxdeg = basis_info["maxdeg"]
-    #Main.poly_deg_pair = basis_info["poly_deg_pair"]
+    
     Main.r_0_av = basis_info["r_0_av"]
     Main.r_in_min = basis_info["r_in_min"]
 
     Main.r_cut = basis_info["r_cut"]
 
+    if "transform_dict" in basis_info:
+        Main.transform_dict = basis_info["transform_dict"]
+    else:
+        Main.transform_dict = {}
+
     Main.eval("""
             using ACE1: transformed_jacobi, transformed_jacobi_env
+            using ACE1.Transforms: multitransform, transform, transform_d
+
             pin = 2
             pcut = 2
+
             ninc = (pcut + pin) * (cor_order-1)
             maxn = maxdeg + ninc 
-            trans = PolyTransform(1, r_0_av)
-            Pr = transformed_jacobi(maxn, trans, r_cut, r_in_min; pcut = pin, pin = pin)
-            
+
+            transforms = Dict()
+            cutoffs = Dict()
+
+            if length(keys(transform_dict)) == 0
+                trans = PolyTransform(2, r_0_av)
+                ninc = (pcut + pin) * (cor_order-1)
+                maxn = maxdeg + ninc 
+                Pr = transformed_jacobi(maxn, trans, r_cut, r_in_min; pcut = pcut, pin = pin)
+            else
+                for d in keys(transform_dict)
+                    transforms[Symbol.(d)] = PolyTransform(2, transform_dict[d]["r_0"])
+                    cutoffs[Symbol.(d)] = (transform_dict[d]["r_min"], r_cut) 
+                end
+                ace_transform = multitransform(transforms, cutoffs=cutoffs)
+                Pr = transformed_jacobi(maxn, ace_transform; pcut = pcut, pin= pin )
+            end
+        
             D = ACE1.RPI.SparsePSHDegree()
-            rpibasis = ACE1x.Pure2b.pure2b_basis(species = AtomicNumber.(Symbol.(elements)),
+
+            rpibasis = ACE1x.Pure2b.pure2b_basis(species =  AtomicNumber.(Symbol.(elements)),
                                        Rn=Pr, 
-                                       D=D,
+                                       D=D, 
                                        maxdeg=maxdeg, 
                                        order=cor_order, 
                                        delete2b = true)

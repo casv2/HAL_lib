@@ -17,16 +17,38 @@ def BO_basis_optim(optim_basis_param, solver, atoms_list, E0s, data_keys, weight
     max_deg_D = optim_basis_param["max_deg_D"]
     max_len_B = optim_basis_param["max_len_B"]
 
-    distances_all = np.hstack([ at.get_all_distances(mic=True).flatten() for at in atoms_list])
-    distances_first_shell = distances_all[ distances_all <= 3.5]
-    distances_non_zero = distances_first_shell[distances_first_shell != 0.0] 
-    
-    r_in_min = np.min(distances_non_zero)
+    all_distances = utils.distances_dict(atoms_list)
+    transform_dict = {}
 
-    x,y = np.histogram(distances_non_zero, bins=100)
-    r_0_av = y[np.argmax(x)]
+    r_0s, r_mins = [], []
+
+    for (i,el1) in enumerate(elements):
+        for (j,el2) in enumerate(elements):
+            if i >= j:
+                try:
+                    d = all_distances[(el1, el2)]
+                except:
+                     d = all_distances[(el2, el1)]
+                
+                r_min = np.min(d)
+                x,y = np.histogram(d, bins=50)
+                try:
+                    r_0 = y[argrelextrema(x, np.greater)[0][0]]
+                except:
+                    r_0 = y[np.argmax(x)]
+
+                transform_dict[(el1, el2)] = {}
+                transform_dict[(el1, el2)]["r_min"] = r_min
+                transform_dict[(el1, el2)]["r_0"] = r_0
+                r_0s.append(r_0)
+                r_mins.append(r_min)
+
+    r_0_av = np.mean(r_0s)
+    r_in_min = np.min(r_mins)
 
     r_cut = [4.5, 8.0]
+
+    print("transform dict: ", transform_dict)
 
     print("r_in {}, r_0 : {}".format(r_in_min, r_0_av))
 
@@ -36,7 +58,8 @@ def BO_basis_optim(optim_basis_param, solver, atoms_list, E0s, data_keys, weight
                         r_cut = r_cut,
                         r_0_av=r_0_av, 
                         r_in_min=r_in_min,
-                        max_len_B=max_len_B, 
+                        max_len_B=max_len_B,
+                        transform_dict=transform_dict, 
                         max_deg_D=max_deg_D):
 
         cor_order = trial.suggest_int('cor_order', low=2, high=4)
@@ -52,6 +75,7 @@ def BO_basis_optim(optim_basis_param, solver, atoms_list, E0s, data_keys, weight
         "elements" : elements, 
         "cor_order" : cor_order,          
         "maxdeg" : maxdeg,
+        "transform_dict" : transform_dict,
         "r_0_av" : r_0_av,
         "r_in_min" : r_in_min,
         "r_cut" : r_cut }
