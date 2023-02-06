@@ -46,7 +46,7 @@ def BO_basis_optim(optim_basis_param, solver, atoms_list, E0s, data_keys, weight
     r_0_av = np.mean(r_0s)
     r_in_min = np.min(r_mins)
 
-    r_cut = [4.5, 8.0]
+    r_cut = [4.5, 8.5]
 
     print("transform dict: ", transform_dict)
 
