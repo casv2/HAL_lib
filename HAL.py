@@ -134,7 +134,7 @@ def HAL(optim_basis_param, E0s, weights, run_info, atoms_list, data_keys, start_
             basis_info["cor_order"] = cor_order
             basis_info["maxdeg"] = deg
             _, len_B = ace_basis.full_basis(basis_info, return_length=True) 
-            if len_B > optim_basis_param["max_len_B"]: #for the max pair
+            if len_B >= optim_basis_param["max_len_B"]: #for the max pair
                 max_deg_D[cor_order] = deg - 1
                 break
 
