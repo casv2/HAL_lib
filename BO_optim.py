@@ -68,7 +68,7 @@ def BO_basis_optim(optim_basis_param, solver, atoms_list, E0s, data_keys, weight
         if cor_order in max_deg_D:
             maxdeg = trial.suggest_int('maxdeg', low=3, high=max_deg_D[cor_order])
         else:
-            maxdeg = trial.suggest_int('maxdeg', low=3, high=20)
+            maxdeg = trial.suggest_int('maxdeg', low=3, high=25)
 
         r_cut = trial.suggest_float('r_cut', low=r_cut[0], high=r_cut[1])
 
@@ -88,10 +88,6 @@ def BO_basis_optim(optim_basis_param, solver, atoms_list, E0s, data_keys, weight
         solver.fit(Psi, Y)
         c = solver.coef_
         #score = solver.scores_[-1]
-
-        print(basis_info)
-        print(len_B)
-        print(max_len_B)
 
         if len_B > max_len_B:
             raise Exception("basis too large!")
