@@ -36,13 +36,13 @@ def full_basis(basis_info, return_length=False):
             cutoffs = Dict()
 
             if length(keys(transform_dict)) == 0
-                trans = PolyTransform(2, r_0_av)
+                trans = AgnesiTransform(; r0=r_0_av, p=2)
                 ninc = (pcut + pin) * (cor_order-1)
                 maxn = maxdeg + ninc 
                 Pr = transformed_jacobi(maxn, trans, r_cut, r_in_min; pcut = pcut, pin = pin)
             else
                 for d in keys(transform_dict)
-                    transforms[Symbol.(d)] = PolyTransform(2, transform_dict[d]["r_0"])
+                    transforms[Symbol.(d)] = AgnesiTransform(; r0=transform_dict[d]["r_0"], p=2)
                     cutoffs[Symbol.(d)] = (transform_dict[d]["r_min"], r_cut) 
                 end
                 ace_transform = multitransform(transforms, cutoffs=cutoffs)
