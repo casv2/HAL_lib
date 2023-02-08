@@ -89,6 +89,10 @@ def BO_basis_optim(optim_basis_param, solver, atoms_list, E0s, data_keys, weight
         c = solver.coef_
         #score = solver.scores_[-1]
 
+        print(basis_info)
+        print(len_B)
+        print(max_len_B)
+
         if len_B > max_len_B:
             raise Exception("basis too large!")
         elif optim_basis_param["IC"] == "BIC":
