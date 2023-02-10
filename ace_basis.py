@@ -60,7 +60,7 @@ def full_basis(basis_info, return_length=False):
 
             trans_r = AgnesiTransform(; r0=r_0_av, p = 2)
 
-            envelope_r = ACE1.PolyEnvelope(2, r_in_min, r_cut)
+            envelope_r = ACE1.PolyEnvelope(2, r_0_av, r_cut)
 
             Jnew = transformed_jacobi_env(maxdeg, trans_r, envelope_r, r_cut)
             pair = PolyPairBasis(Jnew, Symbol.(elements))
